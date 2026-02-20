@@ -1,15 +1,68 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-body {
-  @apply m-0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ─────────────────────────────────────────────────────────────────
+   DESIGN SYSTEM — Semantic tokens
+   All color references in components must use these token names,
+   never hardcoded palette values.
+───────────────────────────────────────────────────────────────── */
+@theme {
+  /* Canvas / Backgrounds */
+  --color-canvas:          oklch(8% 0.015 258);
+  --color-canvas-subtle:   oklch(10.5% 0.018 258);
+  --color-surface:         oklch(13% 0.022 258);
+  --color-surface-raised:  oklch(17.5% 0.028 258);
+  --color-overlay:         oklch(23% 0.033 258);
+
+  /* Borders */
+  --color-edge:            oklch(22% 0.028 258);
+  --color-edge-strong:     oklch(34% 0.04 258);
+
+  /* Foreground / Text */
+  --color-fg:              oklch(97% 0.008 258);
+  --color-fg-muted:        oklch(72% 0.025 258);
+  --color-fg-subtle:       oklch(50% 0.02 258);
+
+  /* Accent — Cyan (cold) */
+  --color-accent:          oklch(74% 0.155 196);
+  --color-accent-dim:      oklch(60% 0.125 196);
+  --color-accent-subtle:   oklch(24% 0.055 196);
+  --color-accent-fg:       oklch(10% 0.015 258);
+
+  /* Heat — Amber (warm) */
+  --color-heat:            oklch(76% 0.17 68);
+  --color-heat-dim:        oklch(63% 0.14 68);
+  --color-heat-subtle:     oklch(24% 0.065 68);
+  --color-heat-fg:         oklch(10% 0.015 258);
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Layout */
+  --spacing-gutter: 1.5rem;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+/* ─────────────────────────────────────────────────────────────────
+   BASE LAYER
+───────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    background-color: var(--color-canvas);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #root {
+    display: contents;
+  }
 }

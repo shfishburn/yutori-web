@@ -10,8 +10,10 @@ export const Route = createFileRoute('/privacy')({
 
 function Page() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 prose prose-invert">
-      <Privacy />
+    <main className="flex-1 mx-auto w-full max-w-3xl px-6 py-16">
+      <article className="prose prose-invert prose-sm sm:prose-base">
+        <Privacy />
+      </article>
     </main>
   )
 }
