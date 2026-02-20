@@ -1,0 +1,13 @@
+{
+  "outputDirectory": "dist/client",
+  "rewrites": [
+    {
+      "source": "/shopify/:path*",
+      "destination": "https://yutori-shopify-seven.vercel.app/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/api/ssr"
+    }
+  ]
+}
