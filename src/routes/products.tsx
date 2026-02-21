@@ -6,6 +6,7 @@ import {
   DEFAULT_OG_IMAGE_TYPE,
   DEFAULT_OG_IMAGE_WIDTH,
 } from '../lib/seo';
+import { LISTING_SEO, LISTING, LISTING_ERROR } from '../content/products';
 
 export const Route = createFileRoute('/products')({
   loader: async () => {
@@ -13,10 +14,9 @@ export const Route = createFileRoute('/products')({
   },
   head: () => ({
     ...buildSeoHead({
-      title: 'Yutori — Products',
-      description:
-        'Saunas, cold plunges, and Bluetooth sensors built for the serious thermal wellness practitioner.',
-      path: '/products',
+      title: LISTING_SEO.title,
+      description: LISTING_SEO.description,
+      path: LISTING_SEO.path,
       imageWidth: DEFAULT_OG_IMAGE_WIDTH,
       imageHeight: DEFAULT_OG_IMAGE_HEIGHT,
       imageType: DEFAULT_OG_IMAGE_TYPE,
@@ -29,13 +29,13 @@ export const Route = createFileRoute('/products')({
 function ProductsError() {
   return (
     <main className="flex-1 mx-auto max-w-3xl px-6 py-20 text-center">
-      <p className="text-2xl font-bold text-fg">Unable to load products</p>
-      <p className="mt-2 text-fg-muted">Please try again in a moment.</p>
+      <p className="text-2xl font-bold text-fg">{LISTING_ERROR.heading}</p>
+      <p className="mt-2 text-fg-muted">{LISTING_ERROR.body}</p>
       <Link
         to="/"
         className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
       >
-        Back to home
+        {LISTING_ERROR.ctaLabel}
       </Link>
     </main>
   );
@@ -48,14 +48,14 @@ function ProductsPage() {
     <main className="flex-1">
       <div className="border-b border-edge bg-surface">
         <div className="mx-auto max-w-6xl px-6 py-12">
-          <h1 className="text-4xl font-extrabold tracking-tight text-fg">Products</h1>
-          <p className="mt-2 text-lg text-fg-muted">Saunas, cold plunges, and sensors — built for the serious practitioner.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-fg">{LISTING.heading}</h1>
+          <p className="mt-2 text-lg text-fg-muted">{LISTING.subheading}</p>
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-6 py-12">
         {products.length === 0 ? (
           <div className="rounded-2xl border border-edge bg-surface p-12 text-center">
-            <p className="text-fg-muted">No products yet. Check back soon.</p>
+            <p className="text-fg-muted">{LISTING.emptyMessage}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -80,8 +80,8 @@ function ProductsPage() {
                   <div className="text-base font-semibold text-fg transition-colors group-hover:text-accent">{p.title}</div>
                   <div className="mt-1.5 text-sm text-fg-muted line-clamp-2">{p.description || '\u00a0'}</div>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-accent">From {p.priceRange.minVariantPrice.amount} {p.priceRange.minVariantPrice.currencyCode}</span>
-                    <span className="text-xs text-fg-subtle transition-colors group-hover:text-fg-muted">View →</span>
+                    <span className="text-sm font-semibold text-accent">{LISTING.pricePrefix} {p.priceRange.minVariantPrice.amount} {p.priceRange.minVariantPrice.currencyCode}</span>
+                    <span className="text-xs text-fg-subtle transition-colors group-hover:text-fg-muted">{LISTING.viewLabel}</span>
                   </div>
                 </div>
               </Link>

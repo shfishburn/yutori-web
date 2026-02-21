@@ -10,6 +10,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools';
 import appCss from '../styles.css?url';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { CartProvider } from '../lib/cart';
 import { SITE_URL } from '../lib/seo';
 
 const organizationJsonLd = JSON.stringify({
@@ -62,11 +63,13 @@ function RootDocument({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <Header />
+        <CartProvider>
+          <Header />
 
-        {children}
+          {children}
 
-        <Footer />
+          <Footer />
+        </CartProvider>
 
         {showDevtools ? (
           <TanStackDevtools

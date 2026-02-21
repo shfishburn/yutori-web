@@ -1,5 +1,8 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { getProductByHandle } from '../server/shopify';
+import { useState } from 'react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useCart } from '../lib/cart';
+import { selectCheckoutVariant } from '../lib/shopifyVariants';
+import { getProductByHandle, getProductVariants } from '../server/shopify';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -8,20 +11,32 @@ import {
   DEFAULT_OG_IMAGE_WIDTH,
   toMetaDescription,
 } from '../lib/seo';
+import {
+  DETAIL_SEO,
+  DETAIL_ERROR,
+  DETAIL_NOT_FOUND,
+  DETAIL_APP_CALLOUT,
+  DETAIL_CTA,
+} from '../content/products';
 
 export const Route = createFileRoute('/products/$handle')({
   loader: async ({ params }) => {
-    const product = await getProductByHandle({
-      data: { handle: params.handle },
-    });
-    return { product };
+    const [product, variants] = await Promise.all([
+      getProductByHandle({
+        data: { handle: params.handle },
+      }),
+      getProductVariants({
+        data: { handle: params.handle },
+      }).catch(() => []),
+    ]);
+    return { product, variants };
   },
   head: ({ loaderData, params }) => {
     const product = loaderData?.product;
-    const title = product ? `Yutori — ${product.title}` : 'Yutori — Product';
+    const title = product ? `Yutori \u2014 ${product.title}` : DETAIL_SEO.fallbackTitle;
     const description = toMetaDescription(
       product?.description,
-      'Shop Yutori sauna, cold plunge, and Bluetooth sensor hardware.',
+      DETAIL_SEO.fallbackDescription,
     );
 
     if (product?.featuredImage?.url) {
@@ -56,31 +71,46 @@ export const Route = createFileRoute('/products/$handle')({
 function ProductError() {
   return (
     <main className="flex-1 mx-auto max-w-3xl px-6 py-20 text-center">
-      <p className="text-2xl font-bold text-fg">Unable to load product</p>
-      <p className="mt-2 text-fg-muted">Please try again in a moment.</p>
+      <p className="text-2xl font-bold text-fg">{DETAIL_ERROR.heading}</p>
+      <p className="mt-2 text-fg-muted">{DETAIL_ERROR.body}</p>
       <Link
         to="/products"
         className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
       >
-        Back to products
+        {DETAIL_ERROR.ctaLabel}
       </Link>
     </main>
   );
 }
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { product, variants } = Route.useLoaderData();
+  const navigate = useNavigate();
+  const { addItem, loading: cartLoading } = useCart();
+  const [cartError, setCartError] = useState<string | null>(null);
+  const checkoutVariant = selectCheckoutVariant(variants, { preferDepositTitle: true });
+
+  const handleAddToCart = async () => {
+    if (!checkoutVariant) return;
+    setCartError(null);
+    try {
+      await addItem(checkoutVariant.id);
+      await navigate({ to: '/cart' });
+    } catch {
+      setCartError(DETAIL_CTA.errorMessage);
+    }
+  };
 
   if (!product) {
     return (
       <main className="flex-1 mx-auto max-w-3xl px-6 py-20 text-center">
-        <p className="text-2xl font-bold text-fg">Product not found</p>
-        <p className="mt-2 text-fg-muted">This product may have been removed or the link is incorrect.</p>
+        <p className="text-2xl font-bold text-fg">{DETAIL_NOT_FOUND.heading}</p>
+        <p className="mt-2 text-fg-muted">{DETAIL_NOT_FOUND.body}</p>
         <Link
           to="/products"
           className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
         >
-          Back to products
+          {DETAIL_NOT_FOUND.ctaLabel}
         </Link>
       </main>
     );
@@ -124,25 +154,43 @@ function ProductPage() {
 
             {/* App callout */}
             <div className="mt-8 rounded-2xl border border-accent-dim/40 bg-accent-subtle p-5">
-              <p className="text-sm font-semibold text-accent">App-connected</p>
+              <p className="text-sm font-semibold text-accent">{DETAIL_APP_CALLOUT.title}</p>
               <p className="mt-1 text-sm text-fg-muted">
-                Pair this product with a Yutori sensor to automatically log every session —
-                temperature curves, duration, and recovery data — in the app.
+                {DETAIL_APP_CALLOUT.body}
               </p>
             </div>
 
             {/* CTA */}
             <div className="mt-8">
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                aria-describedby="cart-status"
-                className="w-full cursor-not-allowed rounded-xl bg-accent px-6 py-4 font-semibold text-accent-fg opacity-50"
-              >
-                Add to cart — coming soon
-              </button>
-              <p id="cart-status" className="mt-2 text-center text-xs text-fg-subtle">Checkout wiring in progress</p>
+              {checkoutVariant ? (
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={cartLoading}
+                  aria-describedby="cart-status"
+                  className="w-full rounded-xl bg-accent px-6 py-4 font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {cartLoading ? DETAIL_CTA.loadingLabel : DETAIL_CTA.label}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  aria-describedby="cart-status"
+                  className="w-full cursor-not-allowed rounded-xl bg-accent px-6 py-4 font-semibold text-accent-fg opacity-50"
+                >
+                  {DETAIL_CTA.unavailableLabel}
+                </button>
+              )}
+              <p id="cart-status" className="mt-2 text-center text-xs text-fg-subtle">
+                {checkoutVariant ? DETAIL_CTA.statusAvailable : DETAIL_CTA.statusUnavailable}
+              </p>
+              {cartError ? (
+                <p role="alert" className="mt-2 text-center text-xs text-red-600">
+                  {cartError}
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
