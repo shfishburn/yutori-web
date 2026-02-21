@@ -61,12 +61,15 @@ async function shopifyGraphql<T>(
   return data as T;
 }
 
+export type ShopifyImage = { url: string; altText: string | null };
+
 export type ShopifyProduct = {
   id: string;
   handle: string;
   title: string;
   description: string;
-  featuredImage: {url: string; altText: string | null} | null;
+  featuredImage: ShopifyImage | null;
+  images: { edges: { node: ShopifyImage }[] };
   priceRange: {minVariantPrice: {amount: string; currencyCode: string}};
 };
 
@@ -109,6 +112,9 @@ query Products($first: Int!) {
           url
           altText
         }
+        images(first: 20) {
+          edges { node { url altText } }
+        }
         priceRange {
           minVariantPrice {
             amount
@@ -131,6 +137,9 @@ query ProductByHandle($handle: String!) {
     featuredImage {
       url
       altText
+    }
+    images(first: 20) {
+      edges { node { url altText } }
     }
     priceRange {
       minVariantPrice {

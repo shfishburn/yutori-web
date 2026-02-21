@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SaunaSensorRouteImport } from './routes/sauna-sensor'
 import { Route as SaunaRouteImport } from './routes/sauna'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PlungeSensorRouteImport } from './routes/plunge-sensor'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsHandleRouteImport } from './routes/products.$handle'
@@ -20,6 +22,11 @@ import { Route as ProductsHandleRouteImport } from './routes/products.$handle'
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaunaSensorRoute = SaunaSensorRouteImport.update({
+  id: '/sauna-sensor',
+  path: '/sauna-sensor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SaunaRoute = SaunaRouteImport.update({
@@ -35,6 +42,11 @@ const ProductsRoute = ProductsRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlungeSensorRoute = PlungeSensorRouteImport.update({
+  id: '/plunge-sensor',
+  path: '/plunge-sensor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -56,18 +68,22 @@ const ProductsHandleRoute = ProductsHandleRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
+  '/plunge-sensor': typeof PlungeSensorRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
+  '/sauna-sensor': typeof SaunaSensorRoute
   '/terms': typeof TermsRoute
   '/products/$handle': typeof ProductsHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
+  '/plunge-sensor': typeof PlungeSensorRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
+  '/sauna-sensor': typeof SaunaSensorRoute
   '/terms': typeof TermsRoute
   '/products/$handle': typeof ProductsHandleRoute
 }
@@ -75,9 +91,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
+  '/plunge-sensor': typeof PlungeSensorRoute
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
+  '/sauna-sensor': typeof SaunaSensorRoute
   '/terms': typeof TermsRoute
   '/products/$handle': typeof ProductsHandleRoute
 }
@@ -86,27 +104,33 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cart'
+    | '/plunge-sensor'
     | '/privacy'
     | '/products'
     | '/sauna'
+    | '/sauna-sensor'
     | '/terms'
     | '/products/$handle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cart'
+    | '/plunge-sensor'
     | '/privacy'
     | '/products'
     | '/sauna'
+    | '/sauna-sensor'
     | '/terms'
     | '/products/$handle'
   id:
     | '__root__'
     | '/'
     | '/cart'
+    | '/plunge-sensor'
     | '/privacy'
     | '/products'
     | '/sauna'
+    | '/sauna-sensor'
     | '/terms'
     | '/products/$handle'
   fileRoutesById: FileRoutesById
@@ -114,9 +138,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CartRoute: typeof CartRoute
+  PlungeSensorRoute: typeof PlungeSensorRoute
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   SaunaRoute: typeof SaunaRoute
+  SaunaSensorRoute: typeof SaunaSensorRoute
   TermsRoute: typeof TermsRoute
 }
 
@@ -127,6 +153,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sauna-sensor': {
+      id: '/sauna-sensor'
+      path: '/sauna-sensor'
+      fullPath: '/sauna-sensor'
+      preLoaderRoute: typeof SaunaSensorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sauna': {
@@ -148,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plunge-sensor': {
+      id: '/plunge-sensor'
+      path: '/plunge-sensor'
+      fullPath: '/plunge-sensor'
+      preLoaderRoute: typeof PlungeSensorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -189,9 +229,11 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
+  PlungeSensorRoute: PlungeSensorRoute,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   SaunaRoute: SaunaRoute,
+  SaunaSensorRoute: SaunaSensorRoute,
   TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport

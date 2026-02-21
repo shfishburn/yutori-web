@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useCart } from '../lib/cart';
 import { selectCheckoutVariant } from '../lib/shopifyVariants';
+import { ProductGallery } from '../components/ProductGallery';
 import { getProductByHandle, getProductVariants } from '../server/shopify';
 import {
   buildSeoHead,
@@ -131,18 +132,11 @@ function ProductPage() {
 
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-          {/* Image */}
-          <div>
-            {product.featuredImage ? (
-              <img
-                src={product.featuredImage.url}
-                alt={product.featuredImage.altText ?? product.title}
-                className="w-full rounded-2xl border border-edge object-cover"
-              />
-            ) : (
-              <div className="aspect-square w-full rounded-2xl border border-edge bg-overlay" />
-            )}
-          </div>
+          {/* Images */}
+          <ProductGallery
+            images={product.images.edges.map((e) => e.node)}
+            productTitle={product.title}
+          />
 
           {/* Details */}
           <div>

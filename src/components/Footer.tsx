@@ -1,21 +1,5 @@
 import { Link } from '@tanstack/react-router';
-
-const FOOTER_LINKS: Array<{
-  heading: string
-  links: Array<{ label: string; href: string }>
-}> = [
-  {
-    heading: 'Shop',
-    links: [{ label: 'Products', href: '/products' }],
-  },
-  {
-    heading: 'Legal',
-    links: [
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Terms', href: '/terms' },
-    ],
-  },
-];
+import { BRAND, FOOTER_COLUMNS, FOOTER_SUPPORT_HEADING, FOOTER_COPYRIGHT } from '../content/common';
 
 export function Footer() {
   return (
@@ -25,16 +9,16 @@ export function Footer() {
           {/* Brand */}
           <div className="shrink-0">
             <Link to="/" className="text-base font-semibold tracking-tight text-fg opacity-70">
-              Yutori Labs
+              {BRAND.name}
             </Link>
             <p className="mt-3 text-sm text-fg-subtle">
-              Thermal wellness, measured.
+              {BRAND.tagline}
             </p>
           </div>
 
           {/* Link columns */}
           <div className="flex flex-wrap gap-x-12 gap-y-8">
-            {FOOTER_LINKS.map((col) => (
+            {FOOTER_COLUMNS.map((col) => (
               <div key={col.heading}>
                 <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-fg-subtle">
                   {col.heading}
@@ -56,15 +40,15 @@ export function Footer() {
 
             <div>
               <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-fg-subtle">
-                Support
+                {FOOTER_SUPPORT_HEADING}
               </p>
               <ul className="space-y-2">
                 <li>
                   <a
-                    href="mailto:support@yutorilabs.com"
+                    href={`mailto:${BRAND.supportEmail}`}
                     className="text-sm text-fg-muted transition-colors hover:text-fg"
                   >
-                    support@yutorilabs.com
+                    {BRAND.supportEmail}
                   </a>
                 </li>
               </ul>
@@ -74,7 +58,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-10 border-t border-edge pt-6 text-xs text-fg-subtle">
-          © {new Date().getFullYear()} Yutori Labs. All rights reserved.
+          {FOOTER_COPYRIGHT(new Date().getFullYear())}
         </div>
       </div>
     </footer>

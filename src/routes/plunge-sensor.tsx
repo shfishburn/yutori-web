@@ -21,32 +21,27 @@ import {
   PRODUCT_HANDLE,
   SEO,
   HERO,
-  THE_SPACE,
-  HEAT_CLIMATE,
-  LIGHT_THERAPY,
+  COMPATIBILITY,
   APP_SECTION,
-  SCIENCE,
-  INSTALLATION,
+  TRENDS,
   PRICING,
   SPECS_SECTION,
   SPECS,
   SAFETY,
   CTA,
-} from '../content/sauna';
+} from '../content/plunge-sensor';
 
 import { SectionHero } from '../components/sections/SectionHero';
 import { SectionWrapper } from '../components/sections/SectionWrapper';
 import { SectionFeatureCards } from '../components/sections/SectionFeatureCards';
-import { SectionIconFeatureCards } from '../components/sections/SectionIconFeatureCards';
-import { SectionTwoColumnFeature } from '../components/sections/SectionTwoColumnFeature';
 import { SectionBadgeFeatureGrid } from '../components/sections/SectionBadgeFeatureGrid';
-import { SectionModalitiesGrid } from '../components/sections/SectionModalitiesGrid';
+import { SectionIconFeatureCards } from '../components/sections/SectionIconFeatureCards';
 import { SectionPricingCards } from '../components/sections/SectionPricingCards';
 import { SectionSpecsTable } from '../components/sections/SectionSpecsTable';
 import { SectionDisclaimersStack } from '../components/sections/SectionDisclaimersStack';
 import { SectionCtaBanner } from '../components/sections/SectionCtaBanner';
 
-export const Route = createFileRoute('/sauna')({
+export const Route = createFileRoute('/plunge-sensor')({
   loader: async () => {
     try {
       const [product, variants] = await Promise.all([
@@ -76,44 +71,31 @@ export const Route = createFileRoute('/sauna')({
       imageType: product?.featuredImage ? undefined : DEFAULT_OG_IMAGE_TYPE,
     });
   },
-  component: SaunaPage,
+  component: PlungeSensorPage,
 });
 
-/* ── Page ───────────────────────────────────────────────────── */
-
-function SaunaPage() {
+function PlungeSensorPage() {
   const { product, variants } = Route.useLoaderData();
   const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
 
-  const price = product?.priceRange?.minVariantPrice;
-  const images: ShopifyImage[] = product?.images?.edges.map((e) => e.node) ?? [];
-  const configuredDepositVariantId =
-    typeof import.meta.env.VITE_SHOPIFY_PULSE_SAUNA_DEPOSIT_VARIANT_ID === 'string'
-      ? import.meta.env.VITE_SHOPIFY_PULSE_SAUNA_DEPOSIT_VARIANT_ID.trim()
-      : '';
-  const preferredDepositVariantId =
-    configuredDepositVariantId.length > 0 ? configuredDepositVariantId : undefined;
-
-  const depositVariant = selectCheckoutVariant(variants, {
-    preferredVariantId: preferredDepositVariantId,
-    preferDepositTitle: true,
-  });
-  const checkoutVariantId = depositVariant?.id ?? preferredDepositVariantId ?? null;
-  const checkoutAvailable = Boolean(checkoutVariantId);
+  const checkoutVariant = selectCheckoutVariant(variants);
+  const checkoutAvailable = Boolean(checkoutVariant);
 
   const handleAddToCart = async () => {
-    if (!checkoutVariantId) return;
+    if (!checkoutVariant) return;
     setCartError(null);
     try {
-      await addItem(checkoutVariantId);
+      await addItem(checkoutVariant.id);
       await navigate({ to: '/cart' });
     } catch {
       setCartError(HERO.ctaError);
     }
   };
 
+  const images: ShopifyImage[] = product?.images?.edges.map((e) => e.node) ?? [];
+  const price = product?.priceRange?.minVariantPrice;
   const livePrice = price ? formatPrice(price.amount, price.currencyCode) : null;
 
   return (
@@ -126,48 +108,12 @@ function SaunaPage() {
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
-        emptyIcon={'\ud83d\udd25'}
+        accentColor="accent"
+        emptyIcon={'\u2744\ufe0f'}
       />
 
       <SectionWrapper variant="surface">
-        <SectionFeatureCards {...THE_SPACE} />
-      </SectionWrapper>
-
-      <SectionWrapper>
-        <SectionIconFeatureCards {...HEAT_CLIMATE} />
-      </SectionWrapper>
-
-      <SectionWrapper variant="surface">
-        <SectionTwoColumnFeature
-          label={LIGHT_THERAPY.label}
-          heading={LIGHT_THERAPY.heading}
-          description={LIGHT_THERAPY.description}
-          bulletPoints={LIGHT_THERAPY.bulletPoints}
-        >
-          <div className="aspect-square w-64 rounded-2xl border border-edge bg-canvas p-8 sm:w-72">
-            <div className="flex h-full flex-col items-center justify-center gap-4">
-              <div className="flex gap-2">
-                {LIGHT_THERAPY.wavelengths.map((nm) => (
-                  <div key={nm} className="flex flex-col items-center gap-1">
-                    <div
-                      className="h-10 w-3 rounded-sm"
-                      style={{
-                        backgroundColor:
-                          parseInt(nm) < 700
-                            ? `hsl(${Math.round(0 + (parseInt(nm) - 630) * 0.5)}, 80%, 50%)`
-                            : `hsl(340, 60%, ${35 + (parseInt(nm) - 810) * 0.3}%)`,
-                        opacity: 0.8,
-                      }}
-                    />
-                    <span className="text-[10px] text-fg-subtle">{nm}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs font-medium text-fg-subtle">{LIGHT_THERAPY.spectrumLabel}</p>
-              <p className="text-[10px] text-fg-subtle">{LIGHT_THERAPY.spectrumUnit}</p>
-            </div>
-          </div>
-        </SectionTwoColumnFeature>
+        <SectionFeatureCards {...COMPATIBILITY} labelColor="text-accent" />
       </SectionWrapper>
 
       <SectionWrapper>
@@ -178,21 +124,11 @@ function SaunaPage() {
       </SectionWrapper>
 
       <SectionWrapper variant="surface">
-        <SectionModalitiesGrid {...SCIENCE} />
-      </SectionWrapper>
-
-      <SectionWrapper>
-        <SectionFeatureCards
-          label={INSTALLATION.label}
-          heading={INSTALLATION.heading}
-          cards={INSTALLATION.requirements}
-          columns={2}
-          labelColor="text-fg-subtle"
-        />
+        <SectionIconFeatureCards {...TRENDS} labelColor="text-accent" />
       </SectionWrapper>
 
       <SectionWrapper variant="surface" id="pricing">
-        <SectionPricingCards {...PRICING} />
+        <SectionPricingCards {...PRICING} columns={2} labelColor="text-accent" />
       </SectionWrapper>
 
       <SectionWrapper variant="surface">
@@ -208,6 +144,7 @@ function SaunaPage() {
         checkoutAvailable={checkoutAvailable}
         cartLoading={cartLoading}
         onAddToCart={handleAddToCart}
+        accentColor="accent"
       />
     </main>
   );
