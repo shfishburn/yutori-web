@@ -1,9 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router';
 import Privacy, { title } from '../content/privacy.mdx';
+import {
+  buildSeoHead,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_TYPE,
+  DEFAULT_OG_IMAGE_WIDTH,
+} from '../lib/seo';
 
 export const Route = createFileRoute('/privacy')({
   head: () => ({
-    meta: [{ title: `Yutori — ${title}` }],
+    ...buildSeoHead({
+      title: `Yutori — ${title}`,
+      description: 'How Yutori handles your account, wellness, and session data.',
+      path: '/privacy',
+      imageWidth: DEFAULT_OG_IMAGE_WIDTH,
+      imageHeight: DEFAULT_OG_IMAGE_HEIGHT,
+      imageType: DEFAULT_OG_IMAGE_TYPE,
+    }),
   }),
   component: Page,
 });

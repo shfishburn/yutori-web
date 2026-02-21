@@ -10,20 +10,29 @@ import { TanStackDevtools } from '@tanstack/react-devtools';
 import appCss from '../styles.css?url';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { SITE_URL } from '../lib/seo';
+
+const organizationJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Yutori Labs',
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo512.png`,
+  email: 'support@yutorilabs.com',
+});
+
+const websiteJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Yutori Labs',
+  url: SITE_URL,
+});
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Yutori — Thermal Wellness, Measured' },
-      { name: 'description', content: 'Sensor-connected sauna and cold plunge hardware with an app that tracks temperature, HRV, and session history automatically.' },
-      { property: 'og:title', content: 'Yutori — Thermal Wellness, Measured' },
-      { property: 'og:description', content: 'Sensor-connected sauna and cold plunge hardware with an app that tracks temperature, HRV, and session history automatically.' },
-      { property: 'og:type', content: 'website' },
-      { name: 'twitter:card', content: 'summary' },
-      { name: 'twitter:title', content: 'Yutori — Thermal Wellness, Measured' },
-      { name: 'twitter:description', content: 'Track your heat. Time your sauna. Know your cold.' },
       { name: 'theme-color', content: '#141726' },
     ],
     links: [
@@ -43,6 +52,14 @@ function RootDocument({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: organizationJsonLd }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: websiteJsonLd }}
+        />
       </head>
       <body>
         <Header />

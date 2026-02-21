@@ -1,5 +1,13 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { getProductByHandle } from '../server/shopify';
+import {
+  buildSeoHead,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_TYPE,
+  DEFAULT_OG_IMAGE_URL,
+  DEFAULT_OG_IMAGE_WIDTH,
+  toMetaDescription,
+} from '../lib/seo';
 
 export const Route = createFileRoute('/products/$handle')({
   loader: async ({ params }) => {
@@ -8,15 +16,39 @@ export const Route = createFileRoute('/products/$handle')({
     });
     return { product };
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: loaderData?.product
-          ? `Yutori — ${loaderData.product.title}`
-          : 'Yutori — Product',
-      },
-    ],
-  }),
+  head: ({ loaderData, params }) => {
+    const product = loaderData?.product;
+    const title = product ? `Yutori — ${product.title}` : 'Yutori — Product';
+    const description = toMetaDescription(
+      product?.description,
+      'Shop Yutori sauna, cold plunge, and Bluetooth sensor hardware.',
+    );
+
+    if (product?.featuredImage?.url) {
+      return {
+        ...buildSeoHead({
+          title,
+          description,
+          path: `/products/${encodeURIComponent(params.handle)}`,
+          ogType: 'product',
+          imageUrl: product.featuredImage.url,
+        }),
+      };
+    }
+
+    return {
+      ...buildSeoHead({
+        title,
+        description,
+        path: `/products/${encodeURIComponent(params.handle)}`,
+        ogType: 'product',
+        imageUrl: DEFAULT_OG_IMAGE_URL,
+        imageWidth: DEFAULT_OG_IMAGE_WIDTH,
+        imageHeight: DEFAULT_OG_IMAGE_HEIGHT,
+        imageType: DEFAULT_OG_IMAGE_TYPE,
+      }),
+    };
+  },
   component: ProductPage,
   errorComponent: ProductError,
 });

@@ -1,12 +1,26 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { getProducts, type ShopifyProduct } from '../server/shopify';
+import {
+  buildSeoHead,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_TYPE,
+  DEFAULT_OG_IMAGE_WIDTH,
+} from '../lib/seo';
 
 export const Route = createFileRoute('/products')({
   loader: async () => {
     return await getProducts();
   },
   head: () => ({
-    meta: [{ title: 'Yutori — Products' }],
+    ...buildSeoHead({
+      title: 'Yutori — Products',
+      description:
+        'Saunas, cold plunges, and Bluetooth sensors built for the serious thermal wellness practitioner.',
+      path: '/products',
+      imageWidth: DEFAULT_OG_IMAGE_WIDTH,
+      imageHeight: DEFAULT_OG_IMAGE_HEIGHT,
+      imageType: DEFAULT_OG_IMAGE_TYPE,
+    }),
   }),
   component: ProductsPage,
   errorComponent: ProductsError,

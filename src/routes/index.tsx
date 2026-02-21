@@ -1,6 +1,24 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import {
+  buildSeoHead,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_TYPE,
+  DEFAULT_OG_IMAGE_WIDTH,
+} from '../lib/seo';
 
-export const Route = createFileRoute('/')({ component: HomePage });
+export const Route = createFileRoute('/')({
+  head: () =>
+    buildSeoHead({
+      title: 'Yutori — Thermal Wellness, Measured',
+      description:
+        'Sensor-connected sauna and cold plunge hardware with an app that tracks temperature, HRV, and session history automatically.',
+      path: '/',
+      imageWidth: DEFAULT_OG_IMAGE_WIDTH,
+      imageHeight: DEFAULT_OG_IMAGE_HEIGHT,
+      imageType: DEFAULT_OG_IMAGE_TYPE,
+    }),
+  component: HomePage,
+});
 
 const BENEFITS = [
   { icon: '⚡', iconLabel: 'Lightning bolt', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },

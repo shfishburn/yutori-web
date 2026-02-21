@@ -1,0 +1,31 @@
+# Yutori Labs
+
+> Sensor-connected sauna and cold plunge hardware with an app that tracks temperature, HRV, and session history automatically.
+
+Yutori builds thermal wellness hardware (saunas, cold plunge tubs) paired with Bluetooth sensors and a mobile app. The sensors stream ambient temperature, session start/end, and duration to the Yutori app in real time. The app records session history, heart rate, HRV, and provides AI-powered insights.
+
+## Products
+
+- Saunas with embedded temperature sensors
+- Chiller-powered cold plunge tubs
+- RuuviTag Bluetooth sensors for retrofit installations
+
+## App Features
+
+- Live session temperature graphs
+- Heart rate and HRV tracking via Apple Health / Health Connect
+- Session history with duration, peak temperature, and calorie estimates
+- AI coaching insights after each session
+- Safety alerts and emergency escalation
+
+## Links
+
+- Products: https://yutorilabs.com/products
+- Privacy Policy: https://yutorilabs.com/privacy
+- Terms of Service: https://yutorilabs.com/terms
+- Sitemap: https://yutorilabs.com/sitemap.xml
+- Support: support@yutorilabs.com
+
+## Optional
+
+- llms-full.txt: https://yutorilabs.com/llms-full.txt

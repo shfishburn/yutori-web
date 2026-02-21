@@ -1,0 +1,64 @@
+# Yutori Labs — Full Documentation
+
+> Sensor-connected sauna and cold plunge hardware with an app that tracks temperature, HRV, and session history automatically.
+
+## Company
+
+Yutori Labs builds thermal wellness hardware and software. The product line includes saunas, cold plunge tubs, and Bluetooth sensors that pair with a mobile app for iOS and Android.
+
+Website: https://yutorilabs.com
+Support: support@yutorilabs.com
+
+## Products
+
+### Saunas
+Precision-built heat chambers with embedded sensors that track temperature curves, session duration, and physiological response. Designed for indoor and outdoor use.
+
+### Cold Plunge Tubs
+Chiller-powered plunge tubs that hold exact temperatures and sync with the app so every cold exposure is recorded and repeatable.
+
+### Bluetooth Sensors
+RuuviTag-based Bluetooth sensors that install in minutes. They stream ambient temperature, humidity, and battery status directly to the Yutori app. Sensors work with any sauna or cold plunge setup — not just Yutori hardware.
+
+## Mobile App
+
+The Yutori app is available for iOS (15.1+) and Android. It connects to sensors via Bluetooth and to Apple Health / Google Health Connect for heart rate and HRV data.
+
+### Core Features
+
+- **Live session tracking**: Real-time temperature graph during sauna and cold plunge sessions
+- **Heart rate and HRV**: Streams from Apple Watch or compatible wearables via Apple Health / Health Connect
+- **Session history**: Full log of every session with duration, peak/min temperature, HRV trend, and calorie estimates
+- **AI coaching**: After each session, the app generates personalized insights and protocol suggestions
+- **Contrast sessions**: Track alternating sauna and cold plunge rounds as a single contrast session
+- **Safety system**: Configurable emergency alerts with countdown timers, emergency contacts, and auto-escalation
+- **Sensor management**: Pair multiple sensors, set target temperatures, and receive ready alerts
+
+### Data and Privacy
+
+- Account data (email, auth tokens) syncs to the cloud for sign-in
+- Session and wellness data is processed to show charts, history, and insights
+- Emergency contacts are stored locally on the device only
+- Users can delete their account and all data from within the app
+- Full privacy policy: https://yutorilabs.com/privacy
+
+## Science
+
+Thermal therapy is supported by decades of peer-reviewed research:
+
+- **Recovery**: Heat stimulates HSP70 proteins that accelerate muscle repair
+- **Sleep**: Post-sauna temperature drop primes the body for deep slow-wave sleep
+- **Mental clarity**: Cold exposure increases norepinephrine, improving focus and mood
+- **Cardiovascular**: Regular heat sessions lower resting heart rate and improve arterial function
+- **Metabolism**: Brown adipose activation from cold exposure increases caloric burn at rest
+- **Immunity**: Hyperthermia stimulates white blood cell production
+- **Inflammation**: Contrast therapy reduces systemic inflammation markers (IL-6, CRP)
+- **Longevity**: Heat shock proteins and cold adaptation are linked to healthspan markers
+
+## Pages
+
+- Home: https://yutorilabs.com/
+- Products: https://yutorilabs.com/products
+- Privacy Policy: https://yutorilabs.com/privacy
+- Terms of Service: https://yutorilabs.com/terms
+- Sitemap: https://yutorilabs.com/sitemap.xml
