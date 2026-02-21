@@ -24,13 +24,8 @@ export function Footer() {
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           {/* Brand */}
           <div className="shrink-0">
-            <Link to="/">
-              <img
-                src="/yutori_logo.png"
-                alt="Yutori"
-                className="h-6 w-auto"
-                style={{ filter: 'brightness(0) invert(1)', opacity: 0.7 }}
-              />
+            <Link to="/" className="text-base font-semibold tracking-tight text-fg opacity-70">
+              Yutori Labs
             </Link>
             <p className="mt-3 text-sm text-fg-subtle">
               Thermal wellness, measured.

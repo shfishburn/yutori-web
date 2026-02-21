@@ -8,20 +8,8 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-edge bg-canvas/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         {/* Logo */}
-        <Link to="/" className="shrink-0" onClick={() => setOpen(false)}>
-          {/* Full wordmark on sm+, symbol-only on mobile */}
-          <img
-            src="/yutori_logo.png"
-            alt="Yutori"
-            className="hidden h-7 w-auto sm:block"
-            style={{ filter: 'brightness(0) invert(1)' }}
-          />
-          <img
-            src="/symbol.png"
-            alt="Yutori"
-            className="block h-8 w-auto sm:hidden"
-            style={{ filter: 'brightness(0) invert(1)' }}
-          />
+        <Link to="/" className="shrink-0 text-lg font-semibold tracking-tight text-fg" onClick={() => setOpen(false)}>
+          Yutori Labs
         </Link>
 
         {/* Desktop nav */}
