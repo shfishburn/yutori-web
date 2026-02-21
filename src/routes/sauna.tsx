@@ -83,6 +83,7 @@ function SaunaPage() {
     preferredVariantId: preferredDepositVariantId,
     preferDepositTitle: true,
   });
+  const checkoutAvailable = Boolean(depositVariant);
 
   const handleAddToCart = async () => {
     if (!depositVariant) return;
@@ -158,26 +159,26 @@ function SaunaPage() {
               </div>
 
               <div className="mt-8">
-                {depositVariant ? (
-                  <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    disabled={cartLoading}
-                    className="block w-full rounded-xl bg-heat px-6 py-4 text-center font-semibold text-heat-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {cartLoading ? HERO.ctaLoadingLabel : HERO.ctaLabel}
-                  </button>
-                ) : (
-                  <a
-                    href="#pricing"
-                    className="block w-full rounded-xl bg-heat px-6 py-4 text-center font-semibold text-heat-fg transition-opacity hover:opacity-90"
-                  >
-                    {HERO.ctaFallbackLabel}
-                  </a>
-                )}
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={!checkoutAvailable || cartLoading}
+                  className="block w-full rounded-xl bg-heat px-6 py-4 text-center font-semibold text-heat-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {checkoutAvailable
+                    ? cartLoading
+                      ? HERO.ctaLoadingLabel
+                      : HERO.ctaLabel
+                    : HERO.ctaUnavailableLabel}
+                </button>
                 <p className="mt-2 text-center text-xs text-fg-subtle">
                   {HERO.depositNote}
                 </p>
+                {!checkoutAvailable ? (
+                  <p role="status" className="mt-2 text-center text-xs text-fg-subtle">
+                    {HERO.ctaUnavailableHelp}
+                  </p>
+                ) : null}
                 {cartError ? (
                   <p role="alert" className="mt-2 text-center text-xs text-red-600">
                     {cartError}
@@ -461,23 +462,18 @@ function SaunaPage() {
             {CTA.description}
           </p>
           <div className="relative mt-8 flex flex-wrap justify-center gap-4">
-            {depositVariant ? (
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={cartLoading}
-                className="rounded-xl bg-heat px-8 py-3.5 font-semibold text-heat-fg transition-opacity hover:opacity-90 disabled:opacity-60"
-              >
-                {cartLoading ? CTA.primaryLoadingLabel : CTA.primaryLabel}
-              </button>
-            ) : (
-              <a
-                href="#pricing"
-                className="rounded-xl bg-heat px-8 py-3.5 font-semibold text-heat-fg transition-opacity hover:opacity-90"
-              >
-                {CTA.primaryFallbackLabel}
-              </a>
-            )}
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!checkoutAvailable || cartLoading}
+              className="rounded-xl bg-heat px-8 py-3.5 font-semibold text-heat-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {checkoutAvailable
+                ? cartLoading
+                  ? CTA.primaryLoadingLabel
+                  : CTA.primaryLabel
+                : CTA.primaryUnavailableLabel}
+            </button>
             <Link
               to="/products"
               className="rounded-xl border border-edge-strong bg-surface px-8 py-3.5 font-semibold text-fg transition-colors hover:bg-overlay"

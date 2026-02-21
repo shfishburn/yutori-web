@@ -20,10 +20,12 @@ export const HERO = {
   description:
     'A clear-cedar backyard sauna built around Saunum\u2019s even heat, integrated red/NIR light, and the Yutori app\u00a0\u2014 which turns your sessions into structured protocols with an emergency alert system in case something goes seriously wrong.',
   imagePlaceholder: 'Product imagery coming soon',
-  ctaLabel: 'Reserve yours \u2014 $2,500 deposit',
-  ctaLoadingLabel: 'Adding\u2026',
-  ctaFallbackLabel: 'Reserve yours \u2014 $2,500 deposit',
+  ctaLabel: 'Add deposit to cart \u2014 $2,500',
+  ctaLoadingLabel: 'Adding to cart\u2026',
+  ctaUnavailableLabel: 'Add to cart unavailable',
   ctaError: 'Unable to add the deposit to your cart. Please try again.',
+  ctaUnavailableHelp:
+    'Checkout is temporarily unavailable. Refresh this page or contact support@yutorilabs.com.',
   depositNote: '10% non-refundable deposit \u00b7 12-week lead time',
   quickStats: [
     { value: '5\u2019\u00d77\u2019', label: 'Interior' },
@@ -326,8 +328,8 @@ export const CTA = {
   heading: 'Your backyard. Your protocol. Your data.',
   description:
     '$24,999 delivered. 10% deposit reserves your build slot. Target delivery within 12\u00a0weeks of signed agreement.',
-  primaryLabel: 'Reserve yours',
-  primaryLoadingLabel: 'Adding\u2026',
-  primaryFallbackLabel: 'Reserve yours',
+  primaryLabel: 'Add deposit to cart',
+  primaryLoadingLabel: 'Adding to cart\u2026',
+  primaryUnavailableLabel: 'Checkout unavailable',
   secondaryLabel: 'View all products',
 };
