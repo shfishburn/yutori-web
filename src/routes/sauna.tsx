@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import {
-  getProductByHandle,
-  getProductVariants,
-  type ShopifyProduct,
-  type ShopifyVariant,
-  type ShopifyImage,
-} from '../server/shopify';
+import { type ShopifyImage } from '../server/shopify';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
-import { selectCheckoutVariant } from '../lib/shopifyVariants';
+import {
+  buildVariantEnvKeyFromHandle,
+  getCheckoutUnavailableHelp,
+  isCheckoutInfrastructureError,
+  resolveCheckoutVariant,
+} from '../lib/checkoutState';
+import { loadProductCommerceByHandle } from '../lib/productCommerce';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -47,20 +47,7 @@ import { SectionDisclaimersStack } from '../components/sections/SectionDisclaime
 import { SectionCtaBanner } from '../components/sections/SectionCtaBanner';
 
 export const Route = createFileRoute('/sauna')({
-  loader: async () => {
-    try {
-      const [product, variants] = await Promise.all([
-        getProductByHandle({ data: { handle: PRODUCT_HANDLE } }),
-        getProductVariants({ data: { handle: PRODUCT_HANDLE } }),
-      ]);
-      return { product, variants };
-    } catch {
-      return {
-        product: null as ShopifyProduct | null,
-        variants: [] as ShopifyVariant[],
-      };
-    }
-  },
+  loader: async () => loadProductCommerceByHandle(PRODUCT_HANDLE),
   head: ({ loaderData }) => {
     const product = loaderData?.product;
     const imageUrl = product?.featuredImage?.url ?? DEFAULT_OG_IMAGE_URL;
@@ -82,29 +69,30 @@ export const Route = createFileRoute('/sauna')({
 /* ── Page ───────────────────────────────────────────────────── */
 
 function SaunaPage() {
-  const { product, variants } = Route.useLoaderData();
+  const { product, variants, loaderError } = Route.useLoaderData();
   const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
 
   const price = product?.priceRange?.minVariantPrice;
   const images: ShopifyImage[] = product?.images?.edges.map((e) => e.node) ?? [];
-  const configuredDepositVariantId =
-    typeof import.meta.env.VITE_SHOPIFY_PULSE_SAUNA_DEPOSIT_VARIANT_ID === 'string'
-      ? import.meta.env.VITE_SHOPIFY_PULSE_SAUNA_DEPOSIT_VARIANT_ID.trim()
-      : '';
-  const preferredDepositVariantId =
-    configuredDepositVariantId.length > 0 ? configuredDepositVariantId : undefined;
-
-  const depositVariant = selectCheckoutVariant(variants, {
-    preferredVariantId: preferredDepositVariantId,
+  const { checkoutVariantId } = resolveCheckoutVariant({
+    variants,
+    fallbackEnvKeys: [
+      'VITE_SHOPIFY_PULSE_SAUNA_DEPOSIT_VARIANT_ID',
+      buildVariantEnvKeyFromHandle(PRODUCT_HANDLE),
+    ],
     preferDepositTitle: true,
   });
-  const checkoutVariantId = depositVariant?.id ?? preferredDepositVariantId ?? null;
-  const checkoutAvailable = Boolean(checkoutVariantId);
+  const checkoutAvailable =
+    Boolean(checkoutVariantId) && !isCheckoutInfrastructureError(loaderError);
+  const checkoutUnavailableHelp = getCheckoutUnavailableHelp(
+    loaderError,
+    HERO.ctaUnavailableHelp,
+  );
 
   const handleAddToCart = async () => {
-    if (!checkoutVariantId) return;
+    if (!checkoutVariantId || !checkoutAvailable) return;
     setCartError(null);
     try {
       await addItem(checkoutVariantId);
@@ -123,6 +111,7 @@ function SaunaPage() {
         images={images}
         livePrice={livePrice}
         checkoutAvailable={checkoutAvailable}
+        checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
@@ -206,6 +195,7 @@ function SaunaPage() {
       <SectionCtaBanner
         content={CTA}
         checkoutAvailable={checkoutAvailable}
+        checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
         onAddToCart={handleAddToCart}
       />

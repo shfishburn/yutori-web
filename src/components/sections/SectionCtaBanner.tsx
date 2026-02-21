@@ -4,6 +4,7 @@ import type { CtaBannerContent } from '../../content/types/sections';
 type Props = {
   content: CtaBannerContent;
   checkoutAvailable: boolean;
+  checkoutUnavailableHelp?: string;
   cartLoading: boolean;
   onAddToCart: () => void;
   secondaryLink?: string;
@@ -13,6 +14,7 @@ type Props = {
 export function SectionCtaBanner({
   content,
   checkoutAvailable,
+  checkoutUnavailableHelp,
   cartLoading,
   onAddToCart,
   secondaryLink = '/products',
@@ -53,6 +55,11 @@ export function SectionCtaBanner({
             {content.secondaryLabel}
           </Link>
         </div>
+        {!checkoutAvailable && checkoutUnavailableHelp ? (
+          <p role="status" className="relative mt-3 text-xs text-fg-subtle">
+            {checkoutUnavailableHelp}
+          </p>
+        ) : null}
       </div>
     </section>
   );

@@ -8,6 +8,7 @@ type Props = {
   images: ShopifyImage[];
   livePrice: string | null;
   checkoutAvailable: boolean;
+  checkoutUnavailableHelp?: string;
   cartLoading: boolean;
   cartError: string | null;
   onAddToCart: () => void;
@@ -47,6 +48,7 @@ export function SectionHero({
   images,
   livePrice,
   checkoutAvailable,
+  checkoutUnavailableHelp,
   cartLoading,
   cartError,
   onAddToCart,
@@ -123,7 +125,7 @@ export function SectionHero({
               </p>
               {!checkoutAvailable ? (
                 <p role="status" className="mt-2 text-center text-xs text-fg-subtle">
-                  {content.ctaUnavailableHelp}
+                  {checkoutUnavailableHelp ?? content.ctaUnavailableHelp}
                 </p>
               ) : null}
               {cartError ? (

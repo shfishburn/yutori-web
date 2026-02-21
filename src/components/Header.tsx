@@ -25,16 +25,10 @@ export function Header() {
             {NAV.pulseSauna}
           </Link>
           <Link
-            to="/sauna-sensor"
-            className="text-fg-muted transition-colors hover:text-fg [&.active]:text-heat"
-          >
-            {NAV.saunaSensor}
-          </Link>
-          <Link
-            to="/plunge-sensor"
+            to="/sensors"
             className="text-fg-muted transition-colors hover:text-fg [&.active]:text-accent"
           >
-            {NAV.plungeSensor}
+            {NAV.sensors}
           </Link>
           <Link
             to="/products"
@@ -101,18 +95,11 @@ export function Header() {
               {NAV.pulseSauna}
             </Link>
             <Link
-              to="/sauna-sensor"
-              onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-heat"
-            >
-              {NAV.saunaSensor}
-            </Link>
-            <Link
-              to="/plunge-sensor"
+              to="/sensors"
               onClick={() => setOpen(false)}
               className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
             >
-              {NAV.plungeSensor}
+              {NAV.sensors}
             </Link>
             <Link
               to="/products"

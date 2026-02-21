@@ -10,8 +10,7 @@ export const BRAND = {
 
 export const NAV = {
   pulseSauna: 'Pulse Sauna',
-  saunaSensor: 'Sauna Sensor',
-  plungeSensor: 'Plunge Sensor',
+  sensors: 'Sensors',
   products: 'Products',
   privacy: 'Privacy',
   terms: 'Terms',
@@ -26,8 +25,8 @@ export const FOOTER_COLUMNS = [
     heading: 'Shop',
     links: [
       { label: 'Pulse Sauna', href: '/sauna' },
-      { label: 'Sauna Sensor', href: '/sauna-sensor' },
-      { label: 'Plunge Sensor', href: '/plunge-sensor' },
+      { label: 'Sensors', href: '/sensors' },
+      { label: 'Contrast Bundle', href: '/sensors/bundle' },
       { label: 'All Products', href: '/products' },
     ],
   },

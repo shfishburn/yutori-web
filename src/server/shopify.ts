@@ -6,15 +6,52 @@ type ShopifyEnv = {
   apiVersion: string;
 };
 
-function getShopifyEnv(): ShopifyEnv {
-  const storeDomain = process.env.SHOPIFY_STORE_DOMAIN;
-  const storefrontToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
-  const apiVersion = process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '2024-10';
+const QUOTED_VALUE_PATTERN = /^(['"])(.*)\1$/;
 
-  if (!storeDomain || !storefrontToken) {
-    throw new Error(
-      'Missing Shopify env vars. Set SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_ACCESS_TOKEN.',
-    );
+function cleanEnvValue(value: string | undefined): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const withoutNewlines = value.replace(/\r?\n/g, '').replace(/\\n/g, '');
+  const trimmed = withoutNewlines.trim();
+  if (trimmed.length === 0) {
+    return undefined;
+  }
+
+  const quotedMatch = trimmed.match(QUOTED_VALUE_PATTERN);
+  if (quotedMatch) {
+    const unwrapped = quotedMatch[2]?.trim();
+    return unwrapped && unwrapped.length > 0 ? unwrapped : undefined;
+  }
+
+  return trimmed;
+}
+
+function normalizeStoreDomain(value: string | undefined): string | undefined {
+  const cleaned = cleanEnvValue(value);
+  if (!cleaned) {
+    return undefined;
+  }
+
+  return cleaned.replace(/^https?:\/\//i, '').replace(/\/+$/g, '');
+}
+
+function getShopifyEnv(): ShopifyEnv {
+  const storeDomain = normalizeStoreDomain(process.env.SHOPIFY_STORE_DOMAIN);
+  const storefrontToken = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN);
+  const apiVersion = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_API_VERSION) ?? '2024-10';
+
+  const missingEnvVars: string[] = [];
+  if (!storeDomain) {
+    missingEnvVars.push('SHOPIFY_STORE_DOMAIN');
+  }
+  if (!storefrontToken) {
+    missingEnvVars.push('SHOPIFY_STOREFRONT_ACCESS_TOKEN');
+  }
+
+  if (missingEnvVars.length > 0 || !storeDomain || !storefrontToken) {
+    throw new Error(`Missing Shopify env vars: ${missingEnvVars.join(', ')}`);
   }
 
   return { storeDomain, storefrontToken, apiVersion };

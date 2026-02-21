@@ -41,7 +41,7 @@ import { SectionSpecsTable } from '../components/sections/SectionSpecsTable';
 import { SectionDisclaimersStack } from '../components/sections/SectionDisclaimersStack';
 import { SectionCtaBanner } from '../components/sections/SectionCtaBanner';
 
-export const Route = createFileRoute('/plunge-sensor')({
+export const Route = createFileRoute('/sensors/plunge')({
   loader: async () => {
     try {
       const [product, variants] = await Promise.all([
@@ -63,7 +63,7 @@ export const Route = createFileRoute('/plunge-sensor')({
     return buildSeoHead({
       title: SEO.title,
       description: SEO.description,
-      path: SEO.path,
+      path: '/sensors/plunge',
       ogType: 'product',
       imageUrl,
       imageWidth: product?.featuredImage ? undefined : DEFAULT_OG_IMAGE_WIDTH,
