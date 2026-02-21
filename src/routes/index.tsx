@@ -3,14 +3,14 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 export const Route = createFileRoute('/')({ component: HomePage });
 
 const BENEFITS = [
-  { icon: '⚡', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },
-  { icon: '😴', label: 'Sleep', body: 'Post-sauna temperature drop primes your body for deep slow-wave sleep.' },
-  { icon: '🧠', label: 'Mental clarity', body: 'Cold exposure spikes norepinephrine — the focus and mood neurotransmitter.' },
-  { icon: '❤️', label: 'Cardiovascular', body: 'Regular heat sessions lower resting heart rate and improve arterial function.' },
-  { icon: '🔥', label: 'Metabolism', body: 'Brown adipose activation from cold exposure increases caloric burn at rest.' },
-  { icon: '🛡️', label: 'Immunity', body: 'Hyperthermia stimulates white blood cell production and immune response.' },
-  { icon: '📉', label: 'Inflammation', body: 'Contrast therapy cycles reduce systemic inflammation markers (IL-6, CRP).' },
-  { icon: '🧬', label: 'Longevity', body: 'Heat shock proteins and cold adaptation are linked to healthspan markers.' },
+  { icon: '⚡', iconLabel: 'Lightning bolt', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },
+  { icon: '😴', iconLabel: 'Sleeping face', label: 'Sleep', body: 'Post-sauna temperature drop primes your body for deep slow-wave sleep.' },
+  { icon: '🧠', iconLabel: 'Brain', label: 'Mental clarity', body: 'Cold exposure spikes norepinephrine — the focus and mood neurotransmitter.' },
+  { icon: '❤️', iconLabel: 'Heart', label: 'Cardiovascular', body: 'Regular heat sessions lower resting heart rate and improve arterial function.' },
+  { icon: '🔥', iconLabel: 'Fire', label: 'Metabolism', body: 'Brown adipose activation from cold exposure increases caloric burn at rest.' },
+  { icon: '🛡️', iconLabel: 'Shield', label: 'Immunity', body: 'Hyperthermia stimulates white blood cell production and immune response.' },
+  { icon: '📉', iconLabel: 'Chart decreasing', label: 'Inflammation', body: 'Contrast therapy cycles reduce systemic inflammation markers (IL-6, CRP).' },
+  { icon: '🧬', iconLabel: 'DNA', label: 'Longevity', body: 'Heat shock proteins and cold adaptation are linked to healthspan markers.' },
 ];
 
 function HomePage() {
@@ -70,6 +70,7 @@ function HomePage() {
             {[
               {
                 icon: '🔥',
+                iconLabel: 'Fire',
                 ringColor: 'border-heat-dim/40 bg-heat-subtle',
                 titleColor: 'text-heat',
                 title: 'Sauna',
@@ -77,6 +78,7 @@ function HomePage() {
               },
               {
                 icon: '🧊',
+                iconLabel: 'Ice cube',
                 ringColor: 'border-accent-dim/40 bg-accent-subtle',
                 titleColor: 'text-accent',
                 title: 'Cold Plunge',
@@ -84,6 +86,7 @@ function HomePage() {
               },
               {
                 icon: '📡',
+                iconLabel: 'Satellite antenna',
                 ringColor: 'border-edge bg-overlay',
                 titleColor: 'text-fg-muted',
                 title: 'Sensors',
@@ -91,7 +94,7 @@ function HomePage() {
               },
             ].map((p) => (
               <div key={p.title} className={`rounded-2xl border ${p.ringColor} p-7`}>
-                <div className="text-3xl">{p.icon}</div>
+                <div className="text-3xl" role="img" aria-label={p.iconLabel}>{p.icon}</div>
                 <h3 className={`mt-4 text-lg font-bold ${p.titleColor}`}>{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
               </div>
@@ -126,8 +129,8 @@ function HomePage() {
               ))}
             </ul>
             <div className="mt-10 flex gap-3">
-              <a href="#" className="rounded-xl border border-edge-strong bg-surface px-5 py-2.5 text-sm font-semibold text-fg transition-colors hover:bg-overlay">App Store</a>
-              <a href="#" className="rounded-xl border border-edge-strong bg-surface px-5 py-2.5 text-sm font-semibold text-fg transition-colors hover:bg-overlay">Google Play</a>
+              <span className="rounded-xl border border-edge bg-surface px-5 py-2.5 text-sm font-semibold text-fg-subtle">App Store — coming soon</span>
+              <span className="rounded-xl border border-edge bg-surface px-5 py-2.5 text-sm font-semibold text-fg-subtle">Google Play — coming soon</span>
             </div>
           </div>
 
@@ -162,7 +165,7 @@ function HomePage() {
                   <div className="text-xs text-fg-subtle">Current streak</div>
                   <div className="text-xl font-bold text-fg">12 days</div>
                 </div>
-                <div className="text-3xl">🔥</div>
+                <div className="text-3xl" role="img" aria-label="Fire streak">🔥</div>
               </div>
             </div>
           </div>
@@ -180,7 +183,7 @@ function HomePage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {BENEFITS.map((b) => (
               <div key={b.label} className="rounded-2xl border border-edge bg-canvas p-5">
-                <div className="text-2xl">{b.icon}</div>
+                <div className="text-2xl" role="img" aria-label={b.iconLabel}>{b.icon}</div>
                 <div className="mt-3 font-semibold text-fg">{b.label}</div>
                 <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">{b.body}</p>
               </div>

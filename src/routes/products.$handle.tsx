@@ -18,7 +18,23 @@ export const Route = createFileRoute('/products/$handle')({
     ],
   }),
   component: ProductPage,
+  errorComponent: ProductError,
 });
+
+function ProductError() {
+  return (
+    <main className="flex-1 mx-auto max-w-3xl px-6 py-20 text-center">
+      <p className="text-2xl font-bold text-fg">Unable to load product</p>
+      <p className="mt-2 text-fg-muted">Please try again in a moment.</p>
+      <Link
+        to="/products"
+        className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
+      >
+        Back to products
+      </Link>
+    </main>
+  );
+}
 
 function ProductPage() {
   const { product } = Route.useLoaderData();
@@ -88,11 +104,13 @@ function ProductPage() {
               <button
                 type="button"
                 disabled
+                aria-disabled="true"
+                aria-describedby="cart-status"
                 className="w-full cursor-not-allowed rounded-xl bg-accent px-6 py-4 font-semibold text-accent-fg opacity-50"
               >
                 Add to cart — coming soon
               </button>
-              <p className="mt-2 text-center text-xs text-fg-subtle">Checkout wiring in progress</p>
+              <p id="cart-status" className="mt-2 text-center text-xs text-fg-subtle">Checkout wiring in progress</p>
             </div>
           </div>
         </div>

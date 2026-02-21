@@ -9,7 +9,23 @@ export const Route = createFileRoute('/products')({
     meta: [{ title: 'Yutori — Products' }],
   }),
   component: ProductsPage,
+  errorComponent: ProductsError,
 });
+
+function ProductsError() {
+  return (
+    <main className="flex-1 mx-auto max-w-3xl px-6 py-20 text-center">
+      <p className="text-2xl font-bold text-fg">Unable to load products</p>
+      <p className="mt-2 text-fg-muted">Please try again in a moment.</p>
+      <Link
+        to="/"
+        className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
+      >
+        Back to home
+      </Link>
+    </main>
+  );
+}
 
 function ProductsPage() {
   const products = (Route.useLoaderData() ?? []) as ShopifyProduct[];
