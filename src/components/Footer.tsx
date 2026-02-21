@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router';
 
 const FOOTER_LINKS: Array<{
   heading: string
@@ -15,7 +15,7 @@ const FOOTER_LINKS: Array<{
       { label: 'Terms', href: '/terms' },
     ],
   },
-]
+];
 
 export function Footer() {
   return (
@@ -24,13 +24,15 @@ export function Footer() {
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           {/* Brand */}
           <div className="shrink-0">
-            <Link
-              to="/"
-              className="text-base font-extrabold tracking-tight text-fg transition-opacity hover:opacity-80"
-            >
-              Yutori
+            <Link to="/">
+              <img
+                src="/yutori_logo.png"
+                alt="Yutori"
+                className="h-6 w-auto"
+                style={{ filter: 'brightness(0) invert(1)', opacity: 0.7 }}
+              />
             </Link>
-            <p className="mt-1 text-sm text-fg-subtle">
+            <p className="mt-3 text-sm text-fg-subtle">
               Thermal wellness, measured.
             </p>
           </div>
@@ -81,5 +83,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

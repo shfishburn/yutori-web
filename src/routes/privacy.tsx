@@ -1,12 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
-import Privacy, { title } from '../content/privacy.mdx'
+import { createFileRoute } from '@tanstack/react-router';
+import Privacy, { title } from '../content/privacy.mdx';
 
 export const Route = createFileRoute('/privacy')({
   head: () => ({
     meta: [{ title: `Yutori — ${title}` }],
   }),
   component: Page,
-})
+});
 
 function Page() {
   return (
@@ -15,5 +15,5 @@ function Page() {
         <Privacy />
       </article>
     </main>
-  )
+  );
 }

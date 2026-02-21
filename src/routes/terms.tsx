@@ -1,12 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router'
-import Terms, { title } from '../content/terms.mdx'
+import { createFileRoute } from '@tanstack/react-router';
+import Terms, { title } from '../content/terms.mdx';
 
 export const Route = createFileRoute('/terms')({
   head: () => ({
     meta: [{ title: `Yutori — ${title}` }],
   }),
   component: Page,
-})
+});
 
 function Page() {
   return (
@@ -15,5 +15,5 @@ function Page() {
         <Terms />
       </article>
     </main>
-  )
+  );
 }

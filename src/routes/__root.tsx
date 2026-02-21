@@ -1,15 +1,15 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 import {
   HeadContent,
   Scripts,
   createRootRoute,
-} from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
+} from '@tanstack/react-router';
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import { TanStackDevtools } from '@tanstack/react-devtools';
 
-import appCss from '../styles.css?url'
-import { Header } from '../components/Header'
-import { Footer } from '../components/Footer'
+import appCss from '../styles.css?url';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -18,13 +18,16 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Yutori — Thermal Wellness, Measured' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', type: 'image/png', href: '/symbol.png' },
+    ],
   }),
   shellComponent: RootDocument,
-})
+});
 
 function RootDocument({ children }: { children: ReactNode }) {
-  const showDevtools = import.meta.env.DEV
+  const showDevtools = import.meta.env.DEV;
 
   return (
     <html lang="en">
@@ -48,5 +51,5 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }

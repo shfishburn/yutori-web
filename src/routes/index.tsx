@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/')({ component: HomePage })
+export const Route = createFileRoute('/')({ component: HomePage });
 
 const BENEFITS = [
   { icon: '⚡', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },
@@ -11,15 +11,15 @@ const BENEFITS = [
   { icon: '🛡️', label: 'Immunity', body: 'Hyperthermia stimulates white blood cell production and immune response.' },
   { icon: '📉', label: 'Inflammation', body: 'Contrast therapy cycles reduce systemic inflammation markers (IL-6, CRP).' },
   { icon: '🧬', label: 'Longevity', body: 'Heat shock proteins and cold adaptation are linked to healthspan markers.' },
-]
+];
 
 function HomePage() {
   return (
     <main className="flex-1">
       {/* Hero */}
       <section className="relative overflow-hidden bg-canvas">
-        <div className="pointer-events-none absolute -top-40 left-1/4 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-heat/10 blur-3xl" />
-        <div className="pointer-events-none absolute -top-40 right-1/4 h-[480px] w-[480px] translate-x-1/2 rounded-full bg-accent/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 left-1/4 h-120 w-120 -translate-x-1/2 rounded-full bg-heat/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-40 right-1/4 h-120 w-120 translate-x-1/2 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-20 text-center lg:pt-32">
           <div className="inline-flex items-center gap-2 rounded-full border border-edge bg-surface px-4 py-1.5 text-xs font-medium text-fg-muted mb-6">
             <span className="h-1.5 w-1.5 rounded-full bg-accent" />
@@ -54,9 +54,9 @@ function HomePage() {
               { value: '180°F', label: 'avg sauna temp' },
               { value: '30 min', label: 'avg session' },
             ].map((s) => (
-              <div key={s.label} className="py-5 px-4">
-                <div className="text-xl font-bold text-fg">{s.value}</div>
-                <div className="mt-0.5 text-xs text-fg-subtle">{s.label}</div>
+              <div key={s.label} className="py-5 px-3 sm:px-4">
+                <div className="text-lg font-bold text-fg sm:text-xl">{s.value}</div>
+                <div className="mt-0.5 text-xs text-fg-subtle leading-tight">{s.label}</div>
               </div>
             ))}
           </div>
@@ -133,7 +133,7 @@ function HomePage() {
 
           {/* Phone mockup */}
           <div className="flex justify-center lg:justify-end">
-            <div className="w-64 rounded-[2.5rem] border-4 border-edge-strong bg-canvas p-4 shadow-2xl ring-1 ring-white/5">
+            <div className="w-56 sm:w-64 rounded-[2.5rem] border-4 border-edge-strong bg-canvas p-4 shadow-2xl ring-1 ring-white/5">
               <div className="mb-4 flex items-center justify-between px-1 text-xs text-fg-subtle">
                 <span>9:41</span><span>●●●</span>
               </div>
@@ -192,7 +192,7 @@ function HomePage() {
       {/* CTA banner */}
       <section className="mx-auto max-w-6xl px-6 py-20">
         <div className="relative overflow-hidden rounded-3xl border border-edge bg-surface-raised p-10 text-center">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-heat/5 via-transparent to-accent/5" />
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-heat/5 via-transparent to-accent/5" />
           <h2 className="relative text-3xl font-extrabold text-fg sm:text-4xl">Start your first session today.</h2>
           <p className="relative mt-4 mx-auto max-w-xl text-fg-muted">Pick your hardware, pair the sensor, and let the app do the rest.</p>
           <div className="relative mt-8 flex flex-wrap justify-center gap-4">
@@ -201,5 +201,5 @@ function HomePage() {
         </div>
       </section>
     </main>
-  )
+  );
 }
