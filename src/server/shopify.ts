@@ -127,7 +127,10 @@ export type ShopifyProduct = {
   description: string;
   featuredImage: ShopifyImage | null;
   images: { edges: { node: ShopifyImage }[] };
-  priceRange: {minVariantPrice: {amount: string; currencyCode: string}};
+  priceRange: {
+    minVariantPrice: { amount: string; currencyCode: string };
+    maxVariantPrice: { amount: string; currencyCode: string };
+  };
 };
 
 export type ShopifyVariant = {
@@ -171,12 +174,17 @@ function mapAdminProductToShopify(
       : null;
 
   const variants = Array.isArray(product.variants) ? product.variants : [];
-  const minPrice = (() => {
+  const { minPrice, maxPrice } = (() => {
     const prices = variants
       .map((v) => parseFloat(v.price))
       .filter((n) => Number.isFinite(n));
-    if (prices.length === 0) return '0';
-    return String(Math.min(...prices));
+    if (prices.length === 0) {
+      return { minPrice: '0', maxPrice: '0' };
+    }
+    return {
+      minPrice: String(Math.min(...prices)),
+      maxPrice: String(Math.max(...prices)),
+    };
   })();
 
   return {
@@ -193,6 +201,10 @@ function mapAdminProductToShopify(
     priceRange: {
       minVariantPrice: {
         amount: minPrice,
+        currencyCode,
+      },
+      maxVariantPrice: {
+        amount: maxPrice,
         currencyCode,
       },
     },

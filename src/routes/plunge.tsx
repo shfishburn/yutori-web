@@ -3,12 +3,14 @@ import { createFileRoute } from '@tanstack/react-router';
 import { type ShopifyImage } from '../server/shopify';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
+import { withCtaPrice } from '../lib/ctaLabel';
 import {
   buildVariantEnvKeyFromHandle,
   getCheckoutUnavailableHelp,
   isCheckoutInfrastructureError,
   resolveCheckoutVariant,
 } from '../lib/checkoutState';
+import { selectDisplayVariant } from '../lib/shopifyVariants';
 import { loadProductCommerceByHandle } from '../lib/productCommerce';
 import {
   buildSeoHead,
@@ -70,9 +72,8 @@ function PlungePage() {
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
 
-  const price = product?.priceRange?.minVariantPrice;
   const images: ShopifyImage[] = product?.images?.edges.map((e) => e.node) ?? [];
-  const { checkoutVariantId } = resolveCheckoutVariant({
+  const { checkoutVariant, checkoutVariantId } = resolveCheckoutVariant({
     variants,
     fallbackEnvKeys: [
       'VITE_SHOPIFY_PULSE_PLUNGE_DEPOSIT_VARIANT_ID',
@@ -80,6 +81,23 @@ function PlungePage() {
     ],
     preferDepositTitle: true,
   });
+
+  const displayVariant = selectDisplayVariant(variants);
+  const displayPrice = displayVariant?.price ?? product?.priceRange?.maxVariantPrice ?? null;
+  const livePrice = displayPrice
+    ? formatPrice(displayPrice.amount, displayPrice.currencyCode)
+    : null;
+
+  const checkoutPrice = checkoutVariant
+    ? formatPrice(checkoutVariant.price.amount, checkoutVariant.price.currencyCode)
+    : null;
+
+  const heroContent = checkoutPrice
+    ? { ...HERO, ctaLabel: withCtaPrice(HERO.ctaLabel, checkoutPrice) }
+    : HERO;
+  const ctaContent = checkoutPrice
+    ? { ...CTA, primaryLabel: withCtaPrice(CTA.primaryLabel, checkoutPrice) }
+    : CTA;
   const checkoutAvailable =
     Boolean(checkoutVariantId) && !isCheckoutInfrastructureError(loaderError);
   const checkoutUnavailableHelp = getCheckoutUnavailableHelp(
@@ -98,12 +116,10 @@ function PlungePage() {
     }
   };
 
-  const livePrice = price ? formatPrice(price.amount, price.currencyCode) : null;
-
   return (
     <main className="flex-1">
       <SectionHero
-        content={HERO}
+        content={heroContent}
         images={images}
         livePrice={livePrice}
         checkoutAvailable={checkoutAvailable}
@@ -167,7 +183,7 @@ function PlungePage() {
       </SectionWrapper>
 
       <SectionCtaBanner
-        content={CTA}
+        content={ctaContent}
         checkoutAvailable={checkoutAvailable}
         checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}

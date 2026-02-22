@@ -28,6 +28,12 @@ export function Header() {
             {NAV.pulsePlunge}
           </Link>
           <Link
+            to="/shower"
+            className="text-fg-muted transition-colors hover:text-fg [&.active]:text-heat"
+          >
+            {NAV.pulseShower}
+          </Link>
+          <Link
             to="/sensors"
             className="text-fg-muted transition-colors hover:text-fg [&.active]:text-accent"
           >
@@ -87,6 +93,13 @@ export function Header() {
               className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
             >
               {NAV.pulsePlunge}
+            </Link>
+            <Link
+              to="/shower"
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-heat"
+            >
+              {NAV.pulseShower}
             </Link>
             <Link
               to="/sensors"

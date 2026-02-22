@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { getProducts, type ShopifyProduct } from '../server/shopify';
+import { formatPrice } from '../lib/format';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -80,7 +81,13 @@ function ProductsPage() {
                   <div className="text-base font-semibold text-fg transition-colors group-hover:text-accent">{p.title}</div>
                   <div className="mt-1.5 text-sm text-fg-muted line-clamp-2">{p.description || '\u00a0'}</div>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-accent">{LISTING.pricePrefix} {p.priceRange.minVariantPrice.amount} {p.priceRange.minVariantPrice.currencyCode}</span>
+                    <span className="text-sm font-semibold text-accent">
+                      {LISTING.pricePrefix}{' '}
+                      {formatPrice(
+                        p.priceRange.maxVariantPrice.amount,
+                        p.priceRange.maxVariantPrice.currencyCode,
+                      )}
+                    </span>
                     <span className="text-xs text-fg-subtle transition-colors group-hover:text-fg-muted">{LISTING.viewLabel}</span>
                   </div>
                 </div>

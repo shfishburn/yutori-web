@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useCart } from '../lib/cart';
-import { selectCheckoutVariant } from '../lib/shopifyVariants';
+import { formatPrice } from '../lib/format';
+import { selectCheckoutVariant, selectDisplayVariant } from '../lib/shopifyVariants';
 import { ProductGallery } from '../components/ProductGallery';
 import { getProductByHandle, getProductVariants } from '../server/shopify';
 import {
@@ -89,6 +90,7 @@ function ProductPage() {
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
   const checkoutVariant = selectCheckoutVariant(variants, { preferDepositTitle: true });
+  const displayVariant = selectDisplayVariant(variants);
 
   const handleAddToCart = async () => {
     if (!checkoutVariant) return;
@@ -141,7 +143,12 @@ function ProductPage() {
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-fg">{product.title}</h1>
             <div className="mt-3 text-2xl font-bold text-accent">
-              {product.priceRange.minVariantPrice.amount}{' '}{product.priceRange.minVariantPrice.currencyCode}
+              {displayVariant
+                ? formatPrice(displayVariant.price.amount, displayVariant.price.currencyCode)
+                : formatPrice(
+                    product.priceRange.maxVariantPrice.amount,
+                    product.priceRange.maxVariantPrice.currencyCode,
+                  )}
             </div>
             <p className="mt-5 text-base leading-relaxed text-fg-muted whitespace-pre-line">{product.description}</p>
 

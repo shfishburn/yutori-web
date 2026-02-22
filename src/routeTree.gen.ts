@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ShowerRouteImport } from './routes/shower'
 import { Route as SaunaRouteImport } from './routes/sauna'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -25,6 +26,11 @@ import { Route as ProductsHandleRouteImport } from './routes/products.$handle'
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShowerRoute = ShowerRouteImport.update({
+  id: '/shower',
+  path: '/shower',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SaunaRoute = SaunaRouteImport.update({
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
+  '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/sensors/bundle': typeof SensorsBundleRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
+  '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/sensors/bundle': typeof SensorsBundleRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
+  '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/sensors/bundle': typeof SensorsBundleRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/sauna'
+    | '/shower'
     | '/terms'
     | '/products/$handle'
     | '/sensors/bundle'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/sauna'
+    | '/shower'
     | '/terms'
     | '/products/$handle'
     | '/sensors/bundle'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/sauna'
+    | '/shower'
     | '/terms'
     | '/products/$handle'
     | '/sensors/bundle'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   SaunaRoute: typeof SaunaRoute
+  ShowerRoute: typeof ShowerRoute
   TermsRoute: typeof TermsRoute
   SensorsBundleRoute: typeof SensorsBundleRoute
   SensorsPlungeRoute: typeof SensorsPlungeRoute
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shower': {
+      id: '/shower'
+      path: '/shower'
+      fullPath: '/shower'
+      preLoaderRoute: typeof ShowerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sauna': {
@@ -293,6 +313,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   SaunaRoute: SaunaRoute,
+  ShowerRoute: ShowerRoute,
   TermsRoute: TermsRoute,
   SensorsBundleRoute: SensorsBundleRoute,
   SensorsPlungeRoute: SensorsPlungeRoute,

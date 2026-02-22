@@ -23,32 +23,27 @@ import {
   PRODUCT_HANDLE,
   SEO,
   HERO,
-  THE_SPACE,
-  HEAT_CLIMATE,
-  LIGHT_THERAPY,
-  APP_SECTION,
-  SCIENCE,
-  INSTALLATION,
+  THE_STRUCTURE,
+  COPPER,
+  CONFIGURATIONS,
+  SYSTEM_FIT,
   PRICING,
   SPECS_SECTION,
   SPECS,
   SAFETY,
   CTA,
-} from '../content/sauna';
+} from '../content/shower';
 
 import { SectionHero } from '../components/sections/SectionHero';
 import { SectionWrapper } from '../components/sections/SectionWrapper';
 import { SectionFeatureCards } from '../components/sections/SectionFeatureCards';
 import { SectionIconFeatureCards } from '../components/sections/SectionIconFeatureCards';
-import { SectionTwoColumnFeature } from '../components/sections/SectionTwoColumnFeature';
-import { SectionBadgeFeatureGrid } from '../components/sections/SectionBadgeFeatureGrid';
-import { SectionModalitiesGrid } from '../components/sections/SectionModalitiesGrid';
 import { SectionPricingCards } from '../components/sections/SectionPricingCards';
 import { SectionSpecsTable } from '../components/sections/SectionSpecsTable';
 import { SectionDisclaimersStack } from '../components/sections/SectionDisclaimersStack';
 import { SectionCtaBanner } from '../components/sections/SectionCtaBanner';
 
-export const Route = createFileRoute('/sauna')({
+export const Route = createFileRoute('/shower')({
   loader: async () => loadProductCommerceByHandle(PRODUCT_HANDLE),
   head: ({ loaderData }) => {
     const product = loaderData?.product;
@@ -65,12 +60,12 @@ export const Route = createFileRoute('/sauna')({
       imageType: product?.featuredImage ? undefined : DEFAULT_OG_IMAGE_TYPE,
     });
   },
-  component: SaunaPage,
+  component: ShowerPage,
 });
 
 /* ── Page ───────────────────────────────────────────────────── */
 
-function SaunaPage() {
+function ShowerPage() {
   const { product, variants, loaderError } = Route.useLoaderData();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
@@ -79,7 +74,7 @@ function SaunaPage() {
   const { checkoutVariant, checkoutVariantId } = resolveCheckoutVariant({
     variants,
     fallbackEnvKeys: [
-      'VITE_SHOPIFY_PULSE_SAUNA_DEPOSIT_VARIANT_ID',
+      'VITE_SHOPIFY_PULSE_SHOWER_DEPOSIT_VARIANT_ID',
       buildVariantEnvKeyFromHandle(PRODUCT_HANDLE),
     ],
     preferDepositTitle: true,
@@ -130,69 +125,23 @@ function SaunaPage() {
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
-        emptyIcon={'\ud83d\udd25'}
+        emptyIcon={'\ud83d\udebf'}
       />
 
       <SectionWrapper variant="surface">
-        <SectionFeatureCards {...THE_SPACE} />
+        <SectionFeatureCards {...THE_STRUCTURE} />
       </SectionWrapper>
 
       <SectionWrapper>
-        <SectionIconFeatureCards {...HEAT_CLIMATE} />
+        <SectionIconFeatureCards {...COPPER} columns={3} />
       </SectionWrapper>
 
       <SectionWrapper variant="surface">
-        <SectionTwoColumnFeature
-          label={LIGHT_THERAPY.label}
-          heading={LIGHT_THERAPY.heading}
-          description={LIGHT_THERAPY.description}
-          bulletPoints={LIGHT_THERAPY.bulletPoints}
-        >
-          <div className="aspect-square w-64 rounded-2xl border border-edge bg-canvas p-8 sm:w-72">
-            <div className="flex h-full flex-col items-center justify-center gap-4">
-              <div className="flex gap-2">
-                {LIGHT_THERAPY.wavelengths.map((nm) => (
-                  <div key={nm} className="flex flex-col items-center gap-1">
-                    <div
-                      className="h-10 w-3 rounded-sm"
-                      style={{
-                        backgroundColor:
-                          parseInt(nm) < 700
-                            ? `hsl(${Math.round(0 + (parseInt(nm) - 630) * 0.5)}, 80%, 50%)`
-                            : `hsl(340, 60%, ${35 + (parseInt(nm) - 810) * 0.3}%)`,
-                        opacity: 0.8,
-                      }}
-                    />
-                    <span className="text-[10px] text-fg-subtle">{nm}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs font-medium text-fg-subtle">{LIGHT_THERAPY.spectrumLabel}</p>
-              <p className="text-[10px] text-fg-subtle">{LIGHT_THERAPY.spectrumUnit}</p>
-            </div>
-          </div>
-        </SectionTwoColumnFeature>
+        <SectionIconFeatureCards {...CONFIGURATIONS} columns={2} />
       </SectionWrapper>
 
       <SectionWrapper>
-        <SectionBadgeFeatureGrid
-          {...APP_SECTION}
-          callout={APP_SECTION.emergency}
-        />
-      </SectionWrapper>
-
-      <SectionWrapper variant="surface">
-        <SectionModalitiesGrid {...SCIENCE} />
-      </SectionWrapper>
-
-      <SectionWrapper>
-        <SectionFeatureCards
-          label={INSTALLATION.label}
-          heading={INSTALLATION.heading}
-          cards={INSTALLATION.requirements}
-          columns={2}
-          labelColor="text-fg-subtle"
-        />
+        <SectionFeatureCards {...SYSTEM_FIT} />
       </SectionWrapper>
 
       <SectionWrapper variant="surface" id="pricing">
