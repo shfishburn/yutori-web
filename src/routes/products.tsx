@@ -7,11 +7,44 @@ import {
   DEFAULT_OG_IMAGE_TYPE,
   DEFAULT_OG_IMAGE_WIDTH,
 } from '../lib/seo';
-import { LISTING_SEO, LISTING, LISTING_ERROR } from '../content/products';
+import {
+  LISTING_SEO,
+  LISTING,
+  LISTING_FALLBACK_PRODUCTS,
+} from '../content/products';
+
+type ProductsLoaderData = {
+  products: ShopifyProduct[];
+  loaderError: string | null;
+};
+
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
 
 export const Route = createFileRoute('/products')({
-  loader: async () => {
-    return await getProducts();
+  loader: async (): Promise<ProductsLoaderData> => {
+    try {
+      const products = await getProducts();
+      return {
+        products,
+        loaderError: products.length === 0 ? 'empty_catalog' : null,
+      };
+    } catch (error) {
+      const loaderError = toErrorMessage(error);
+      console.error(`[commerce] Failed Shopify product listing: ${loaderError}`);
+      return { products: [], loaderError };
+    }
   },
   head: () => ({
     ...buildSeoHead({
@@ -24,26 +57,11 @@ export const Route = createFileRoute('/products')({
     }),
   }),
   component: ProductsPage,
-  errorComponent: ProductsError,
 });
 
-function ProductsError() {
-  return (
-    <main className="flex-1 mx-auto max-w-3xl px-6 py-20 text-center">
-      <p className="text-2xl font-bold text-fg">{LISTING_ERROR.heading}</p>
-      <p className="mt-2 text-fg-muted">{LISTING_ERROR.body}</p>
-      <Link
-        to="/"
-        className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
-      >
-        {LISTING_ERROR.ctaLabel}
-      </Link>
-    </main>
-  );
-}
-
 function ProductsPage() {
-  const products = (Route.useLoaderData() ?? []) as ShopifyProduct[];
+  const { products, loaderError } = Route.useLoaderData();
+  const showFallback = products.length === 0 && loaderError !== null;
 
   return (
     <main className="flex-1">
@@ -55,8 +73,42 @@ function ProductsPage() {
       </div>
       <div className="mx-auto max-w-6xl px-6 py-12">
         {products.length === 0 ? (
-          <div className="rounded-2xl border border-edge bg-surface p-12 text-center">
-            <p className="text-fg-muted">{LISTING.emptyMessage}</p>
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-edge bg-surface p-8 text-center">
+              <p className="text-fg-muted">
+                {showFallback ? LISTING.unavailableMessage : LISTING.emptyMessage}
+              </p>
+            </div>
+
+            {showFallback ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {LISTING_FALLBACK_PRODUCTS.map((p) => (
+                  <Link
+                    key={p.id}
+                    to={p.href}
+                    className="group rounded-2xl border border-edge bg-surface p-5 transition-all hover:border-edge-strong hover:bg-surface-raised"
+                  >
+                    <div className="h-48 w-full rounded-xl bg-overlay" />
+                    <div className="mt-5">
+                      <div className="text-base font-semibold text-fg transition-colors group-hover:text-accent">
+                        {p.title}
+                      </div>
+                      <div className="mt-1.5 text-sm text-fg-muted line-clamp-2">
+                        {p.description}
+                      </div>
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="text-sm font-semibold text-accent">
+                          {LISTING.pricePrefix} {p.priceLabel}
+                        </span>
+                        <span className="text-xs text-fg-subtle transition-colors group-hover:text-fg-muted">
+                          {LISTING.viewLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -78,8 +130,12 @@ function ProductsPage() {
                   <div className="h-48 w-full rounded-xl bg-overlay" />
                 )}
                 <div className="mt-5">
-                  <div className="text-base font-semibold text-fg transition-colors group-hover:text-accent">{p.title}</div>
-                  <div className="mt-1.5 text-sm text-fg-muted line-clamp-2">{p.description || '\u00a0'}</div>
+                  <div className="text-base font-semibold text-fg transition-colors group-hover:text-accent">
+                    {p.title}
+                  </div>
+                  <div className="mt-1.5 text-sm text-fg-muted line-clamp-2">
+                    {p.description || '\u00a0'}
+                  </div>
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-sm font-semibold text-accent">
                       {LISTING.pricePrefix}{' '}
@@ -88,7 +144,9 @@ function ProductsPage() {
                         p.priceRange.maxVariantPrice.currencyCode,
                       )}
                     </span>
-                    <span className="text-xs text-fg-subtle transition-colors group-hover:text-fg-muted">{LISTING.viewLabel}</span>
+                    <span className="text-xs text-fg-subtle transition-colors group-hover:text-fg-muted">
+                      {LISTING.viewLabel}
+                    </span>
                   </div>
                 </div>
               </Link>

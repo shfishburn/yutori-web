@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
-import {
-  getProductByHandle,
-  getProductVariants,
-  type ShopifyProduct,
-  type ShopifyVariant,
-  type ShopifyImage,
-} from '../server/shopify';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { type ShopifyImage } from '../server/shopify';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
 import { withCtaPrice } from '../lib/ctaLabel';
-import { selectCheckoutVariant, selectDisplayVariant } from '../lib/shopifyVariants';
+import {
+  buildVariantEnvKeyFromHandle,
+  getCheckoutUnavailableHelp,
+  isCheckoutInfrastructureError,
+  resolveCheckoutVariant,
+} from '../lib/checkoutState';
+import { selectDisplayVariant } from '../lib/shopifyVariants';
+import { loadProductCommerceByHandle } from '../lib/productCommerce';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -41,20 +42,7 @@ import { SectionDisclaimersStack } from '../components/sections/SectionDisclaime
 import { SectionCtaBanner } from '../components/sections/SectionCtaBanner';
 
 export const Route = createFileRoute('/sensors/bundle')({
-  loader: async () => {
-    try {
-      const [product, variants] = await Promise.all([
-        getProductByHandle({ data: { handle: PRODUCT_HANDLE } }),
-        getProductVariants({ data: { handle: PRODUCT_HANDLE } }),
-      ]);
-      return { product, variants };
-    } catch {
-      return {
-        product: null as ShopifyProduct | null,
-        variants: [] as ShopifyVariant[],
-      };
-    }
-  },
+  loader: async () => loadProductCommerceByHandle(PRODUCT_HANDLE),
   head: ({ loaderData }) => {
     const product = loaderData?.product;
     const imageUrl = product?.featuredImage?.url ?? DEFAULT_OG_IMAGE_URL;
@@ -74,13 +62,23 @@ export const Route = createFileRoute('/sensors/bundle')({
 });
 
 function ContrastBundlePage() {
-  const { product, variants } = Route.useLoaderData();
+  const { product, variants, loaderError } = Route.useLoaderData();
+  const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
 
-  const checkoutVariant = selectCheckoutVariant(variants);
+  const { checkoutVariant, checkoutVariantId } = resolveCheckoutVariant({
+    variants,
+    fallbackEnvKeys: [buildVariantEnvKeyFromHandle(PRODUCT_HANDLE)],
+    preferDepositTitle: false,
+  });
   const displayVariant = selectDisplayVariant(variants);
-  const checkoutAvailable = Boolean(checkoutVariant);
+  const checkoutAvailable =
+    Boolean(checkoutVariantId) && !isCheckoutInfrastructureError(loaderError);
+  const checkoutUnavailableHelp = getCheckoutUnavailableHelp(
+    loaderError,
+    HERO.ctaUnavailableHelp,
+  );
 
   const displayPrice = displayVariant?.price ?? product?.priceRange?.maxVariantPrice ?? null;
   const livePrice = displayPrice
@@ -99,11 +97,11 @@ function ContrastBundlePage() {
     : CTA;
 
   const handleAddToCart = async () => {
-    if (!checkoutVariant) return;
+    if (!checkoutVariantId || !checkoutAvailable) return;
     setCartError(null);
     try {
-      const invoiceUrl = await addItem(checkoutVariant.id);
-      window.location.assign(invoiceUrl);
+      await addItem(checkoutVariantId);
+      await navigate({ to: '/cart' });
     } catch {
       setCartError(HERO.ctaError);
     }
@@ -118,10 +116,11 @@ function ContrastBundlePage() {
         images={images}
         livePrice={livePrice}
         checkoutAvailable={checkoutAvailable}
+        checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
-        emptyIcon={'\ud83d\udd25\u2744\ufe0f'}
+        emptyIcon={'🔥❄️'}
       />
 
       <SectionWrapper variant="surface">
@@ -150,6 +149,7 @@ function ContrastBundlePage() {
       <SectionCtaBanner
         content={ctaContent}
         checkoutAvailable={checkoutAvailable}
+        checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
         onAddToCart={handleAddToCart}
         secondaryLink="/sensors"

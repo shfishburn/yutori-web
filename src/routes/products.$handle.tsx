@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
-import { selectCheckoutVariant, selectDisplayVariant } from '../lib/shopifyVariants';
+import { selectDisplayVariant } from '../lib/shopifyVariants';
 import { ProductGallery } from '../components/ProductGallery';
-import { getProductByHandle, getProductVariants } from '../server/shopify';
+import {
+  buildVariantEnvKeyFromHandle,
+  getCheckoutUnavailableHelp,
+  isCheckoutInfrastructureError,
+  resolveCheckoutVariant,
+} from '../lib/checkoutState';
+import { loadProductCommerceByHandle } from '../lib/productCommerce';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -22,20 +28,10 @@ import {
 } from '../content/products';
 
 export const Route = createFileRoute('/products/$handle')({
-  loader: async ({ params }) => {
-    const [product, variants] = await Promise.all([
-      getProductByHandle({
-        data: { handle: params.handle },
-      }),
-      getProductVariants({
-        data: { handle: params.handle },
-      }).catch(() => []),
-    ]);
-    return { product, variants };
-  },
+  loader: async ({ params }) => loadProductCommerceByHandle(params.handle),
   head: ({ loaderData, params }) => {
     const product = loaderData?.product;
-    const title = product ? `Yutori \u2014 ${product.title}` : DETAIL_SEO.fallbackTitle;
+    const title = product ? `Yutori — ${product.title}` : DETAIL_SEO.fallbackTitle;
     const description = toMetaDescription(
       product?.description,
       DETAIL_SEO.fallbackDescription,
@@ -86,18 +82,31 @@ function ProductError() {
 }
 
 function ProductPage() {
-  const { product, variants } = Route.useLoaderData();
+  const { handle } = Route.useParams();
+  const { product, variants, loaderError } = Route.useLoaderData();
+  const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
-  const checkoutVariant = selectCheckoutVariant(variants, { preferDepositTitle: true });
+
+  const { checkoutVariantId } = resolveCheckoutVariant({
+    variants,
+    fallbackEnvKeys: [buildVariantEnvKeyFromHandle(handle)],
+    preferDepositTitle: true,
+  });
+  const checkoutAvailable =
+    Boolean(checkoutVariantId) && !isCheckoutInfrastructureError(loaderError);
+  const statusUnavailable = getCheckoutUnavailableHelp(
+    loaderError,
+    DETAIL_CTA.statusUnavailable,
+  );
   const displayVariant = selectDisplayVariant(variants);
 
   const handleAddToCart = async () => {
-    if (!checkoutVariant) return;
+    if (!checkoutVariantId || !checkoutAvailable) return;
     setCartError(null);
     try {
-        const invoiceUrl = await addItem(checkoutVariant.id);
-        window.location.assign(invoiceUrl);
+      await addItem(checkoutVariantId);
+      await navigate({ to: '/cart' });
     } catch {
       setCartError(DETAIL_CTA.errorMessage);
     }
@@ -120,7 +129,6 @@ function ProductPage() {
 
   return (
     <main className="flex-1">
-      {/* Breadcrumb */}
       <div className="border-b border-edge bg-surface">
         <div className="mx-auto max-w-6xl px-6 py-4">
           <nav className="flex items-center gap-2 text-sm text-fg-subtle">
@@ -133,13 +141,11 @@ function ProductPage() {
 
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
-          {/* Images */}
           <ProductGallery
             images={product.images.edges.map((e) => e.node)}
             productTitle={product.title}
           />
 
-          {/* Details */}
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-fg">{product.title}</h1>
             <div className="mt-3 text-2xl font-bold text-accent">
@@ -150,41 +156,35 @@ function ProductPage() {
                     product.priceRange.maxVariantPrice.currencyCode,
                   )}
             </div>
-            <p className="mt-5 text-base leading-relaxed text-fg-muted whitespace-pre-line">{product.description}</p>
+            <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-fg-muted">
+              {product.description}
+            </p>
 
-            {/* App callout */}
             <div className="mt-8 rounded-2xl border border-accent-dim/40 bg-accent-subtle p-5">
               <p className="text-sm font-semibold text-accent">{DETAIL_APP_CALLOUT.title}</p>
-              <p className="mt-1 text-sm text-fg-muted">
-                {DETAIL_APP_CALLOUT.body}
-              </p>
+              <p className="mt-1 text-sm text-fg-muted">{DETAIL_APP_CALLOUT.body}</p>
             </div>
 
-            {/* CTA */}
             <div className="mt-8">
-              {checkoutVariant ? (
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  disabled={cartLoading}
-                  aria-describedby="cart-status"
-                  className="w-full rounded-xl bg-accent px-6 py-4 font-semibold text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {cartLoading ? DETAIL_CTA.loadingLabel : DETAIL_CTA.label}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  aria-describedby="cart-status"
-                  className="w-full cursor-not-allowed rounded-xl bg-accent px-6 py-4 font-semibold text-accent-fg opacity-50"
-                >
-                  {DETAIL_CTA.unavailableLabel}
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={!checkoutAvailable || cartLoading}
+                aria-describedby="cart-status"
+                className={`w-full rounded-xl bg-accent px-6 py-4 font-semibold text-accent-fg transition-opacity hover:opacity-90 ${
+                  !checkoutAvailable || cartLoading
+                    ? 'cursor-not-allowed opacity-60'
+                    : ''
+                }`}
+              >
+                {checkoutAvailable
+                  ? cartLoading
+                    ? DETAIL_CTA.loadingLabel
+                    : DETAIL_CTA.label
+                  : DETAIL_CTA.unavailableLabel}
+              </button>
               <p id="cart-status" className="mt-2 text-center text-xs text-fg-subtle">
-                {checkoutVariant ? DETAIL_CTA.statusAvailable : DETAIL_CTA.statusUnavailable}
+                {checkoutAvailable ? DETAIL_CTA.statusAvailable : statusUnavailable}
               </p>
               {cartError ? (
                 <p role="alert" className="mt-2 text-center text-xs text-red-600">

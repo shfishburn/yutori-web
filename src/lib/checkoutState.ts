@@ -10,7 +10,7 @@ type ResolveCheckoutVariantOptions = {
 
 const QUOTED_VALUE_PATTERN = /^(['"])(.*)\1$/;
 const CHECKOUT_INFRASTRUCTURE_ERROR_PATTERN =
-  /Missing Shopify env vars|Shopify request failed \((401|403)\)|Shopify GraphQL errors:.*(ACCESS_DENIED|access denied|forbidden|unauthorized|invalid)/i;
+  /Missing Shopify env vars|Shopify request failed \((401|403|404)\)|Shopify GraphQL errors:.*(ACCESS_DENIED|NOT_FOUND|access denied|forbidden|unauthorized|invalid|not found)/i;
 
 export function normalizeConfigValue(
   value: string | null | undefined,
@@ -94,7 +94,7 @@ export function getCheckoutUnavailableHelp(
   }
 
   if (isCheckoutInfrastructureError(loaderError)) {
-    return 'Checkout is not configured correctly yet. Contact support@yutorilabs.com.';
+    return 'Checkout is not configured correctly. Contact support@yutorilabs.com.';
   }
 
   return 'Checkout is temporarily unavailable. Refresh and try again.';

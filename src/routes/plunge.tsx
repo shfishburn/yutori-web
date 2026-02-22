@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { type ShopifyImage } from '../server/shopify';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
@@ -69,6 +69,7 @@ export const Route = createFileRoute('/plunge')({
 
 function PlungePage() {
   const { product, variants, loaderError } = Route.useLoaderData();
+  const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
 
@@ -109,8 +110,8 @@ function PlungePage() {
     if (!checkoutVariantId || !checkoutAvailable) return;
     setCartError(null);
     try {
-      const invoiceUrl = await addItem(checkoutVariantId);
-      window.location.assign(invoiceUrl);
+      await addItem(checkoutVariantId);
+      await navigate({ to: '/cart' });
     } catch {
       setCartError(HERO.ctaError);
     }

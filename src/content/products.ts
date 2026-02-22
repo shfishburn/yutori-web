@@ -11,9 +11,56 @@ export const LISTING = {
   heading: 'Products',
   subheading: 'Saunas, cold plunges, and sensors \u2014 built for the serious practitioner.',
   emptyMessage: 'No products yet. Check back soon.',
+  unavailableMessage:
+    'Shopify catalog is temporarily unavailable. Browse currently implemented products below.',
   viewLabel: 'View \u2192',
   pricePrefix: 'From',
 };
+
+export const LISTING_FALLBACK_PRODUCTS = [
+  {
+    id: 'fallback-pulse-sauna',
+    title: 'Pulse Sauna',
+    description: 'Clear-cedar sauna with sensor-guided protocols and safety workflows.',
+    href: '/sauna',
+    priceLabel: '$24,999',
+  },
+  {
+    id: 'fallback-pulse-plunge',
+    title: 'Pulse Plunge',
+    description: 'Copper plunge system with guided contrast-ready integration.',
+    href: '/plunge',
+    priceLabel: '$24,999',
+  },
+  {
+    id: 'fallback-pulse-shower',
+    title: 'Pulse Shower',
+    description: 'Cold rinse and transition station for contrast workflows.',
+    href: '/shower',
+    priceLabel: '$7,499',
+  },
+  {
+    id: 'fallback-sauna-sensor',
+    title: 'Pulse Sauna Sensor',
+    description: 'Bluetooth sauna sensor for any existing sauna setup.',
+    href: '/sensors/sauna',
+    priceLabel: '$60',
+  },
+  {
+    id: 'fallback-plunge-sensor',
+    title: 'Pulse Plunge Sensor',
+    description: 'Bluetooth water temperature sensor for any plunge setup.',
+    href: '/sensors/plunge',
+    priceLabel: '$60',
+  },
+  {
+    id: 'fallback-contrast-bundle',
+    title: 'Pulse Contrast Bundle',
+    description: 'Sauna + plunge sensors with bundle pricing.',
+    href: '/sensors/bundle',
+    priceLabel: '$109',
+  },
+];
 
 export const LISTING_ERROR = {
   heading: 'Unable to load products',

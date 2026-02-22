@@ -1,16 +1,15 @@
 import { useState } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
-import {
-  getProductByHandle,
-  getProductVariants,
-  type ShopifyProduct,
-  type ShopifyVariant,
-  type ShopifyImage,
-} from '../server/shopify';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { type ShopifyImage } from '../server/shopify';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
-import { withCtaPrice } from '../lib/ctaLabel';
-import { selectCheckoutVariant, selectDisplayVariant } from '../lib/shopifyVariants';
+import {
+  buildVariantEnvKeyFromHandle,
+  getCheckoutUnavailableHelp,
+  isCheckoutInfrastructureError,
+  resolveCheckoutVariant,
+} from '../lib/checkoutState';
+import { loadProductCommerceByHandle } from '../lib/productCommerce';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -43,20 +42,7 @@ import { SectionDisclaimersStack } from '../components/sections/SectionDisclaime
 import { SectionCtaBanner } from '../components/sections/SectionCtaBanner';
 
 export const Route = createFileRoute('/sensors/plunge')({
-  loader: async () => {
-    try {
-      const [product, variants] = await Promise.all([
-        getProductByHandle({ data: { handle: PRODUCT_HANDLE } }),
-        getProductVariants({ data: { handle: PRODUCT_HANDLE } }),
-      ]);
-      return { product, variants };
-    } catch {
-      return {
-        product: null as ShopifyProduct | null,
-        variants: [] as ShopifyVariant[],
-      };
-    }
-  },
+  loader: async () => loadProductCommerceByHandle(PRODUCT_HANDLE),
   head: ({ loaderData }) => {
     const product = loaderData?.product;
     const imageUrl = product?.featuredImage?.url ?? DEFAULT_OG_IMAGE_URL;
@@ -76,55 +62,50 @@ export const Route = createFileRoute('/sensors/plunge')({
 });
 
 function PlungeSensorPage() {
-  const { product, variants } = Route.useLoaderData();
+  const { product, variants, loaderError } = Route.useLoaderData();
+  const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
 
-  const checkoutVariant = selectCheckoutVariant(variants);
-  const displayVariant = selectDisplayVariant(variants);
-  const checkoutAvailable = Boolean(checkoutVariant);
-
-  const displayPrice = displayVariant?.price ?? product?.priceRange?.maxVariantPrice ?? null;
-  const livePrice = displayPrice
-    ? formatPrice(displayPrice.amount, displayPrice.currencyCode)
-    : null;
-
-  const checkoutPrice = checkoutVariant
-    ? formatPrice(checkoutVariant.price.amount, checkoutVariant.price.currencyCode)
-    : null;
-
-  const heroContent = checkoutPrice
-    ? { ...HERO, ctaLabel: withCtaPrice(HERO.ctaLabel, checkoutPrice) }
-    : HERO;
-  const ctaContent = checkoutPrice
-    ? { ...CTA, primaryLabel: withCtaPrice(CTA.primaryLabel, checkoutPrice) }
-    : CTA;
+  const { checkoutVariantId } = resolveCheckoutVariant({
+    variants,
+    fallbackEnvKeys: [buildVariantEnvKeyFromHandle(PRODUCT_HANDLE)],
+  });
+  const checkoutAvailable =
+    Boolean(checkoutVariantId) && !isCheckoutInfrastructureError(loaderError);
+  const checkoutUnavailableHelp = getCheckoutUnavailableHelp(
+    loaderError,
+    HERO.ctaUnavailableHelp,
+  );
 
   const handleAddToCart = async () => {
-    if (!checkoutVariant) return;
+    if (!checkoutVariantId || !checkoutAvailable) return;
     setCartError(null);
     try {
-      const invoiceUrl = await addItem(checkoutVariant.id);
-      window.location.assign(invoiceUrl);
+      await addItem(checkoutVariantId);
+      await navigate({ to: '/cart' });
     } catch {
       setCartError(HERO.ctaError);
     }
   };
 
   const images: ShopifyImage[] = product?.images?.edges.map((e) => e.node) ?? [];
+  const price = product?.priceRange?.minVariantPrice;
+  const livePrice = price ? formatPrice(price.amount, price.currencyCode) : null;
 
   return (
     <main className="flex-1">
       <SectionHero
-        content={heroContent}
+        content={HERO}
         images={images}
         livePrice={livePrice}
         checkoutAvailable={checkoutAvailable}
+        checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
         accentColor="accent"
-        emptyIcon={'\u2744\ufe0f'}
+        emptyIcon={'❄️'}
       />
 
       <SectionWrapper variant="surface">
@@ -155,8 +136,9 @@ function PlungeSensorPage() {
       </SectionWrapper>
 
       <SectionCtaBanner
-        content={ctaContent}
+        content={CTA}
         checkoutAvailable={checkoutAvailable}
+        checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
         onAddToCart={handleAddToCart}
         accentColor="accent"

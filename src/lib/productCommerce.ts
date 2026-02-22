@@ -44,7 +44,11 @@ export async function loadProductCommerceByHandle(
     errors.push(`variants=${toErrorMessage(variantsResult.reason)}`);
   }
 
-  const loaderError = errors.length > 0 ? errors.join(' | ') : null;
+  let loaderError = errors.length > 0 ? errors.join(' | ') : null;
+  if (!loaderError && !product && variants.length === 0) {
+    loaderError = `product_not_found:${handle}`;
+  }
+
   if (loaderError) {
     console.error(`[commerce] Failed Shopify load for "${handle}": ${loaderError}`);
   }
