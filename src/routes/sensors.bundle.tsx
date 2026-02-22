@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import {
   getProductByHandle,
   getProductVariants,
@@ -74,7 +74,6 @@ export const Route = createFileRoute('/sensors/bundle')({
 
 function ContrastBundlePage() {
   const { product, variants } = Route.useLoaderData();
-  const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
 
@@ -85,8 +84,8 @@ function ContrastBundlePage() {
     if (!checkoutVariant) return;
     setCartError(null);
     try {
-      await addItem(checkoutVariant.id);
-      await navigate({ to: '/cart' });
+      const invoiceUrl = await addItem(checkoutVariant.id);
+      window.location.assign(invoiceUrl);
     } catch {
       setCartError(HERO.ctaError);
     }

@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { useCart } from '../lib/cart';
 import { BRAND, NAV } from '../content/common';
 
 export function Header() {
   const [open, setOpen] = useState(false);
-  const { cart } = useCart();
-  const cartCount = cart?.totalQuantity ?? 0;
 
   return (
     <header className="sticky top-0 z-50 border-b border-edge bg-canvas/80 backdrop-blur-md">
@@ -38,24 +35,8 @@ export function Header() {
           </Link>
         </nav>
 
-        {/* Desktop CTA + cart */}
+        {/* Desktop CTA */}
         <div className="hidden items-center gap-3 sm:flex">
-          <Link
-            to="/cart"
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-edge text-fg-muted transition-colors hover:bg-surface hover:text-fg"
-            aria-label={`${NAV.cartLabel}${cartCount > 0 ? ` (${cartCount} item${cartCount > 1 ? 's' : ''})` : ''}`}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 01-8 0" />
-            </svg>
-            {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-heat text-[10px] font-bold text-heat-fg">
-                {cartCount}
-              </span>
-            )}
-          </Link>
           <Link
             to="/products"
             className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
@@ -123,14 +104,7 @@ export function Header() {
               {NAV.terms}
             </Link>
           </nav>
-          <div className="mt-4 border-t border-edge pt-4 flex flex-col gap-3">
-            <Link
-              to="/cart"
-              onClick={() => setOpen(false)}
-              className="flex items-center justify-center gap-2 rounded-xl border border-edge bg-surface px-4 py-3 text-sm font-semibold text-fg transition-colors hover:bg-overlay"
-            >
-              {NAV.cartLabel}{cartCount > 0 && ` (${cartCount})`}
-            </Link>
+          <div className="mt-4 border-t border-edge pt-4">
             <Link
               to="/products"
               onClick={() => setOpen(false)}
