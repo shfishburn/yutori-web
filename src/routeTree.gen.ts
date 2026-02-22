@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ShowerRouteImport } from './routes/shower'
 import { Route as SaunaRouteImport } from './routes/sauna'
-import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PlungeRouteImport } from './routes/plunge'
 import { Route as CartRouteImport } from './routes/cart'
@@ -36,11 +35,6 @@ const ShowerRoute = ShowerRouteImport.update({
 const SaunaRoute = SaunaRouteImport.update({
   id: '/sauna',
   path: '/sauna',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -84,9 +78,9 @@ const SensorsBundleRoute = SensorsBundleRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsHandleRoute = ProductsHandleRouteImport.update({
-  id: '/$handle',
-  path: '/$handle',
-  getParentRoute: () => ProductsRoute,
+  id: '/products/$handle',
+  path: '/products/$handle',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -94,7 +88,6 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
-  '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
   '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
@@ -109,7 +102,6 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
-  '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
   '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
@@ -125,7 +117,6 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
-  '/products': typeof ProductsRouteWithChildren
   '/sauna': typeof SaunaRoute
   '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
@@ -142,7 +133,6 @@ export interface FileRouteTypes {
     | '/cart'
     | '/plunge'
     | '/privacy'
-    | '/products'
     | '/sauna'
     | '/shower'
     | '/terms'
@@ -157,7 +147,6 @@ export interface FileRouteTypes {
     | '/cart'
     | '/plunge'
     | '/privacy'
-    | '/products'
     | '/sauna'
     | '/shower'
     | '/terms'
@@ -172,7 +161,6 @@ export interface FileRouteTypes {
     | '/cart'
     | '/plunge'
     | '/privacy'
-    | '/products'
     | '/sauna'
     | '/shower'
     | '/terms'
@@ -188,10 +176,10 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   PlungeRoute: typeof PlungeRoute
   PrivacyRoute: typeof PrivacyRoute
-  ProductsRoute: typeof ProductsRouteWithChildren
   SaunaRoute: typeof SaunaRoute
   ShowerRoute: typeof ShowerRoute
   TermsRoute: typeof TermsRoute
+  ProductsHandleRoute: typeof ProductsHandleRoute
   SensorsBundleRoute: typeof SensorsBundleRoute
   SensorsPlungeRoute: typeof SensorsPlungeRoute
   SensorsSaunaRoute: typeof SensorsSaunaRoute
@@ -219,13 +207,6 @@ declare module '@tanstack/react-router' {
       path: '/sauna'
       fullPath: '/sauna'
       preLoaderRoute: typeof SaunaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -286,35 +267,23 @@ declare module '@tanstack/react-router' {
     }
     '/products/$handle': {
       id: '/products/$handle'
-      path: '/$handle'
+      path: '/products/$handle'
       fullPath: '/products/$handle'
       preLoaderRoute: typeof ProductsHandleRouteImport
-      parentRoute: typeof ProductsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface ProductsRouteChildren {
-  ProductsHandleRoute: typeof ProductsHandleRoute
-}
-
-const ProductsRouteChildren: ProductsRouteChildren = {
-  ProductsHandleRoute: ProductsHandleRoute,
-}
-
-const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
-  ProductsRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
   PlungeRoute: PlungeRoute,
   PrivacyRoute: PrivacyRoute,
-  ProductsRoute: ProductsRouteWithChildren,
   SaunaRoute: SaunaRoute,
   ShowerRoute: ShowerRoute,
   TermsRoute: TermsRoute,
+  ProductsHandleRoute: ProductsHandleRoute,
   SensorsBundleRoute: SensorsBundleRoute,
   SensorsPlungeRoute: SensorsPlungeRoute,
   SensorsSaunaRoute: SensorsSaunaRoute,

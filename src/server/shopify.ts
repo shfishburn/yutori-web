@@ -383,7 +383,7 @@ export const createCart = createServerFn({ method: 'POST' })
     if (!Array.isArray(lines) || lines.length === 0) {
       throw new Error('lines is required');
     }
-    return { lines: lines as Array<{ merchandiseId: string; quantity: number }> };
+    return { lines: lines as Array<{ merchandiseId: string; quantity: number; sellingPlanId?: string }> };
   })
   .handler(async (ctx) => {
     const data = await shopifyGraphql<{
@@ -414,7 +414,7 @@ export const addCartLines = createServerFn({ method: 'POST' })
     }
     return {
       cartId,
-      lines: lines as Array<{ merchandiseId: string; quantity: number }>,
+      lines: lines as Array<{ merchandiseId: string; quantity: number; sellingPlanId?: string }>,
     };
   })
   .handler(async (ctx) => {

@@ -22,7 +22,7 @@ const STALE_CART_ERROR_PATTERN =
 type CartContextValue = {
   cart: ShopifyCart | null;
   loading: boolean;
-  addItem: (variantId: string, quantity?: number) => Promise<void>;
+  addItem: (variantId: string, quantity?: number, sellingPlanId?: string) => Promise<void>;
   removeItem: (lineId: string) => Promise<void>;
   clearCart: () => void;
   refreshCart: () => Promise<void>;
@@ -100,8 +100,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [refreshCart]);
 
   const addItem = useCallback(
-    async (variantId: string, quantity = 1) => {
-      const lines = [{ merchandiseId: variantId, quantity }];
+    async (variantId: string, quantity = 1, sellingPlanId?: string) => {
+      const line: { merchandiseId: string; quantity: number; sellingPlanId?: string } = {
+        merchandiseId: variantId,
+        quantity,
+      };
+      if (sellingPlanId) {
+        line.sellingPlanId = sellingPlanId;
+      }
+      const lines = [line];
       setLoading(true);
       try {
         if (cart) {

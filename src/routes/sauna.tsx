@@ -2,15 +2,13 @@ import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { type ShopifyImage } from '../server/shopify';
 import { useCart } from '../lib/cart';
-import { formatPrice } from '../lib/format';
-import { withCtaPrice } from '../lib/ctaLabel';
 import {
   buildVariantEnvKeyFromHandle,
   getCheckoutUnavailableHelp,
   isCheckoutInfrastructureError,
   resolveCheckoutVariant,
 } from '../lib/checkoutState';
-import { selectDisplayVariant } from '../lib/shopifyVariants';
+import { SELLING_PLAN_DEPOSIT_ID } from '../lib/sellingPlans';
 import { loadProductCommerceByHandle } from '../lib/productCommerce';
 import {
   buildSeoHead,
@@ -77,7 +75,7 @@ function SaunaPage() {
   const [cartError, setCartError] = useState<string | null>(null);
 
   const images: ShopifyImage[] = product?.images?.edges.map((e) => e.node) ?? [];
-  const { checkoutVariant, checkoutVariantId } = resolveCheckoutVariant({
+  const { checkoutVariantId } = resolveCheckoutVariant({
     variants,
     fallbackEnvKeys: [
       'VITE_SHOPIFY_PULSE_SAUNA_DEPOSIT_VARIANT_ID',
@@ -86,22 +84,6 @@ function SaunaPage() {
     preferDepositTitle: true,
   });
 
-  const displayVariant = selectDisplayVariant(variants);
-  const displayPrice = displayVariant?.price ?? product?.priceRange?.maxVariantPrice ?? null;
-  const livePrice = displayPrice
-    ? formatPrice(displayPrice.amount, displayPrice.currencyCode)
-    : null;
-
-  const checkoutPrice = checkoutVariant
-    ? formatPrice(checkoutVariant.price.amount, checkoutVariant.price.currencyCode)
-    : null;
-
-  const heroContent = checkoutPrice
-    ? { ...HERO, ctaLabel: withCtaPrice(HERO.ctaLabel, checkoutPrice) }
-    : HERO;
-  const ctaContent = checkoutPrice
-    ? { ...CTA, primaryLabel: withCtaPrice(CTA.primaryLabel, checkoutPrice) }
-    : CTA;
   const checkoutAvailable =
     Boolean(checkoutVariantId) && !isCheckoutInfrastructureError(loaderError);
   const checkoutUnavailableHelp = getCheckoutUnavailableHelp(
@@ -113,7 +95,7 @@ function SaunaPage() {
     if (!checkoutVariantId || !checkoutAvailable) return;
     setCartError(null);
     try {
-      await addItem(checkoutVariantId);
+      await addItem(checkoutVariantId, 1, SELLING_PLAN_DEPOSIT_ID);
       await navigate({ to: '/cart' });
     } catch {
       setCartError(HERO.ctaError);
@@ -123,9 +105,9 @@ function SaunaPage() {
   return (
     <main className="flex-1">
       <SectionHero
-        content={heroContent}
+        content={HERO}
         images={images}
-        livePrice={livePrice}
+        livePrice={null}
         checkoutAvailable={checkoutAvailable}
         checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
@@ -209,7 +191,7 @@ function SaunaPage() {
       </SectionWrapper>
 
       <SectionCtaBanner
-        content={ctaContent}
+        content={CTA}
         checkoutAvailable={checkoutAvailable}
         checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
