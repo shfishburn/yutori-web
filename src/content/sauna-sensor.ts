@@ -10,7 +10,7 @@ export const SEO = {
   title: 'Pulse Sauna Sensor \u2014 Upgrade Any Sauna | Yutori Labs',
   description:
     'A Bluetooth temperature and humidity sensor that turns any sauna into a measured, coach-guided practice with the Yutori app.',
-  path: '/sauna-sensor',
+  path: '/sensors/sauna',
 };
 
 /* ── Hero ─────────────────────────────────────────────────── */

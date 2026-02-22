@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Icon } from '../components/Icon';
+import { ProfileEditor } from '../components/ProfileEditor';
+import { SegmentedControl, type Segment } from '../components/SegmentedControl';
 import { SessionCard, formatDuration } from '../components/SessionCard';
 import { useAuth } from '../lib/auth';
 import { buildSeoHead } from '../lib/seo';
@@ -491,6 +493,17 @@ function Achievements({ stats }: { stats: DashboardStats }) {
   );
 }
 
+/* ── Segments ───────────────────────────────────────────────────── */
+
+type Tab = 'overview' | 'health' | 'progress' | 'profile';
+
+const TABS: Segment<Tab>[] = [
+  { key: 'overview', label: DASHBOARD.segmentOverview },
+  { key: 'health', label: DASHBOARD.segmentHealth },
+  { key: 'progress', label: DASHBOARD.segmentProgress },
+  { key: 'profile', label: DASHBOARD.segmentProfile },
+];
+
 /* ── Page ───────────────────────────────────────────────────────── */
 
 function DashboardPage() {
@@ -499,6 +512,7 @@ function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('overview');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -544,7 +558,7 @@ function DashboardPage() {
   return (
     <main className="flex-1 bg-canvas">
       <section className="mx-auto max-w-5xl px-6 py-12">
-        {/* Header */}
+        {/* Header + Segmented Control */}
         <div className="rounded-3xl border border-edge bg-surface p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-fg-subtle">
             {DASHBOARD.heading}
@@ -552,6 +566,9 @@ function DashboardPage() {
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-fg">
             {DASHBOARD.subtitle}
           </h1>
+          <div className="mt-5">
+            <SegmentedControl segments={TABS} selected={tab} onChange={setTab} />
+          </div>
         </div>
 
         {/* Loading */}
@@ -568,15 +585,15 @@ function DashboardPage() {
           <div className="ui-alert-danger mt-6">{error}</div>
         ) : null}
 
-        {/* Empty state */}
-        {!loading && !error && stats && stats.totalSessions === 0 ? (
+        {/* Empty state (only on data tabs) */}
+        {!loading && !error && stats && stats.totalSessions === 0 && tab !== 'profile' ? (
           <div className="mt-6 rounded-3xl border border-edge bg-surface p-6 sm:p-8 text-sm text-fg-muted">
             {DASHBOARD.emptyState}
           </div>
         ) : null}
 
-        {/* Dashboard content */}
-        {!loading && !error && stats && stats.totalSessions > 0 ? (
+        {/* ── Overview tab ─────────────────────────────────────── */}
+        {tab === 'overview' && !loading && !error && stats && stats.totalSessions > 0 ? (
           <>
             {/* Summary cards */}
             <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
@@ -623,24 +640,9 @@ function DashboardPage() {
               <WeeklyChart stats={stats} />
             </div>
 
-            {/* Temperature trends */}
-            <div className="mt-6">
-              <TempTrends trends={stats.tempTrends} />
-            </div>
-
-            {/* Health impact metrics */}
-            <div className="mt-6">
-              <HealthMetricsSection stats={stats} />
-            </div>
-
             {/* Session breakdown */}
             <div className="mt-6">
               <Breakdown stats={stats} />
-            </div>
-
-            {/* Achievements */}
-            <div className="mt-6">
-              <Achievements stats={stats} />
             </div>
 
             {/* Recent sessions */}
@@ -666,6 +668,35 @@ function DashboardPage() {
               )}
             </div>
           </>
+        ) : null}
+
+        {/* ── Health tab ───────────────────────────────────────── */}
+        {tab === 'health' && !loading && !error && stats && stats.totalSessions > 0 ? (
+          <>
+            {/* Temperature trends */}
+            <div className="mt-6">
+              <TempTrends trends={stats.tempTrends} />
+            </div>
+
+            {/* Health impact metrics */}
+            <div className="mt-6">
+              <HealthMetricsSection stats={stats} />
+            </div>
+          </>
+        ) : null}
+
+        {/* ── Progress tab ─────────────────────────────────────── */}
+        {tab === 'progress' && !loading && !error && stats && stats.totalSessions > 0 ? (
+          <div className="mt-6">
+            <Achievements stats={stats} />
+          </div>
+        ) : null}
+
+        {/* ── Profile tab ──────────────────────────────────────── */}
+        {tab === 'profile' ? (
+          <div className="mt-6">
+            <ProfileEditor />
+          </div>
         ) : null}
       </section>
     </main>

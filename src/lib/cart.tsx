@@ -76,8 +76,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return;
       }
       clearStoredCart();
-    } catch {
-      clearStoredCart();
+    } catch (error) {
+      if (isStaleCartError(error)) {
+        clearStoredCart();
+      }
+      // Transient network errors — keep the stored cart ID for next attempt
     }
   }, [clearStoredCart]);
 

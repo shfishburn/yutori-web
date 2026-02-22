@@ -45,7 +45,7 @@ function getShopifyAdminEnv(): ShopifyAdminEnv {
   const adminToken = cleanEnvValue(
     process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN,
   );
-  const apiVersion = cleanEnvValue(process.env.SHOPIFY_ADMIN_API_VERSION) ?? '2024-01';
+  const apiVersion = cleanEnvValue(process.env.SHOPIFY_ADMIN_API_VERSION) ?? '2024-10';
 
   if (!storeDomain || !adminToken) {
     const missing: string[] = [];

@@ -571,7 +571,6 @@ function computeHealthMetrics(
     const kcal = s.totalKcal;
 
     if (avgHr != null) allHrs.push(avgHr);
-    if (peakHr != null) allHrs.push(peakHr);
     if (avgHrv != null) allHrvs.push(avgHrv);
     if (typeof kcal === 'number' && kcal > 0) {
       totalKcal += kcal;

@@ -10,7 +10,7 @@ export const SEO = {
   title: 'Pulse Plunge Sensor \u2014 Precise Cold Exposure | Yutori Labs',
   description:
     'A Bluetooth water temperature sensor that turns any cold plunge into a precise, coach-guided cold-exposure practice with the Yutori app.',
-  path: '/plunge-sensor',
+  path: '/sensors/plunge',
 };
 
 /* ── Hero ─────────────────────────────────────────────────── */
