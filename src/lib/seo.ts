@@ -1,8 +1,9 @@
 export const SITE_URL = 'https://yutorilabs.com';
-export const DEFAULT_OG_IMAGE_URL = `${SITE_URL}/og_image.jpg`;
-export const DEFAULT_OG_IMAGE_WIDTH = 1024;
-export const DEFAULT_OG_IMAGE_HEIGHT = 1024;
-export const DEFAULT_OG_IMAGE_TYPE = 'image/jpeg';
+export const DEFAULT_OG_IMAGE_URL =
+  'https://cdn.shopify.com/s/files/1/0670/8035/6015/files/pulse-contrast-bundle.webp?v=1771722300';
+export const DEFAULT_OG_IMAGE_WIDTH = 1104;
+export const DEFAULT_OG_IMAGE_HEIGHT = 828;
+export const DEFAULT_OG_IMAGE_TYPE = 'image/webp';
 
 type BuildSeoHeadOptions = {
   title: string;
