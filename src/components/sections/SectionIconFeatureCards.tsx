@@ -53,7 +53,11 @@ export function SectionIconFeatureCards({
                 : 'border-edge bg-surface'
             }`}
           >
-            <Icon name={c.icon} className="h-6 w-6 text-fg-muted" aria-label={c.iconLabel} />
+            <Icon
+              name={c.icon}
+              className={`h-6 w-6 ${c.highlight ? hlText : (c.iconColor ?? 'text-fg-muted')}`}
+              aria-label={c.iconLabel}
+            />
             <h3 className={`mt-4 font-bold ${c.highlight ? hlText : 'text-fg'}`}>
               {c.title}
             </h3>

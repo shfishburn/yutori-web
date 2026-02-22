@@ -168,14 +168,14 @@ export const BENEFITS_SECTION = {
 };
 
 export const BENEFITS = [
-  { icon: 'bolt', iconLabel: 'Lightning bolt', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },
-  { icon: 'moon', iconLabel: 'Sleeping face', label: 'Sleep', body: 'Post-sauna temperature drop primes your body for deep slow-wave sleep.' },
-  { icon: 'cpu-chip', iconLabel: 'Brain', label: 'Mental clarity', body: 'Cold exposure spikes norepinephrine \u2014 the focus and mood neurotransmitter.' },
-  { icon: 'heart', iconLabel: 'Heart', label: 'Cardiovascular', body: 'Regular heat sessions lower resting heart rate and improve arterial function.' },
-  { icon: 'fire', iconLabel: 'Fire', label: 'Metabolism', body: 'Brown adipose activation from cold exposure increases caloric burn at rest.' },
-  { icon: 'shield-check', iconLabel: 'Shield', label: 'Immunity', body: 'Hyperthermia stimulates white blood cell production and immune response.' },
-  { icon: 'trending-down', iconLabel: 'Chart decreasing', label: 'Inflammation', body: 'Contrast therapy cycles reduce systemic inflammation markers (IL-6, CRP).' },
-  { icon: 'beaker', iconLabel: 'DNA', label: 'Longevity', body: 'Heat shock proteins and cold adaptation are linked to healthspan markers.' },
+  { icon: 'bolt', iconLabel: 'Lightning bolt', iconColor: 'text-heat', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },
+  { icon: 'moon', iconLabel: 'Moon', iconColor: 'text-accent', label: 'Sleep', body: 'Post-sauna temperature drop primes your body for deep slow-wave sleep.' },
+  { icon: 'cpu-chip', iconLabel: 'CPU chip', iconColor: 'text-accent', label: 'Mental clarity', body: 'Cold exposure spikes norepinephrine \u2014 the focus and mood neurotransmitter.' },
+  { icon: 'heart', iconLabel: 'Heart', iconColor: 'text-heat', label: 'Cardiovascular', body: 'Regular heat sessions lower resting heart rate and improve arterial function.' },
+  { icon: 'fire', iconLabel: 'Fire', iconColor: 'text-heat', label: 'Metabolism', body: 'Brown adipose activation from cold exposure increases caloric burn at rest.' },
+  { icon: 'shield-check', iconLabel: 'Shield', iconColor: 'text-heat', label: 'Immunity', body: 'Hyperthermia stimulates white blood cell production and immune response.' },
+  { icon: 'trending-down', iconLabel: 'Trending down', iconColor: 'text-accent', label: 'Inflammation', body: 'Contrast therapy cycles reduce systemic inflammation markers (IL-6, CRP).' },
+  { icon: 'beaker', iconLabel: 'Beaker', iconColor: 'text-fg-muted', label: 'Longevity', body: 'Heat shock proteins and cold adaptation are linked to healthspan markers.' },
 ];
 
 /* ── Bottom CTA ───────────────────────────────────────────── */

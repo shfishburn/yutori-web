@@ -87,7 +87,7 @@ function HomePage() {
                 to={p.href}
                 className={`group rounded-2xl border ${p.ringColor} p-7 transition-colors hover:border-edge-strong`}
               >
-                <Icon name={p.icon} className="h-7 w-7" aria-label={p.iconLabel} />
+                <Icon name={p.icon} className={`h-7 w-7 ${p.titleColor}`} aria-label={p.iconLabel} />
                 <h3 className={`mt-4 text-lg font-bold ${p.titleColor}`}>{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
               </Link>
@@ -112,7 +112,7 @@ function HomePage() {
               to={p.href}
               className="group flex flex-col rounded-2xl border border-edge bg-surface p-7 transition-all hover:border-edge-strong hover:bg-surface-raised"
             >
-              <Icon name={p.icon} className="h-7 w-7" aria-label={p.iconLabel} />
+              <Icon name={p.icon} className={`h-7 w-7 ${p.accentClass}`} aria-label={p.iconLabel} />
               <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-fg-subtle">{p.subtitle}</p>
               <h3 className="mt-1 text-xl font-bold text-fg">{p.title}</h3>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-fg-muted">{p.description}</p>
@@ -198,7 +198,7 @@ function HomePage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {BENEFITS.map((b) => (
               <div key={b.label} className="rounded-2xl border border-edge bg-canvas p-5">
-                <Icon name={b.icon} className="h-6 w-6 text-fg-muted" aria-label={b.iconLabel} />
+                <Icon name={b.icon} className={`h-6 w-6 ${b.iconColor}`} aria-label={b.iconLabel} />
                 <div className="mt-3 font-semibold text-fg">{b.label}</div>
                 <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">{b.body}</p>
               </div>

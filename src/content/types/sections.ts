@@ -10,6 +10,8 @@ export type FeatureCard = {
 export type IconFeatureCard = {
   icon: string;
   iconLabel: string;
+  /** Tailwind text-color class for the icon, e.g. 'text-heat'. Defaults to accent color when highlighted, 'text-fg-muted' otherwise. */
+  iconColor?: string;
   title: string;
   body: string;
   highlight?: boolean;
