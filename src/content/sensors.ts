@@ -1,3 +1,5 @@
+import { P } from './pricing';
+
 /* ── SEO ──────────────────────────────────────────────────── */
 
 export const SEO = {
@@ -54,7 +56,7 @@ export const PRODUCTS_SECTION = {
 export const PRODUCT_CARDS = [
   {
     title: 'Pulse Sauna Sensor',
-    price: '$60',
+    price: P.sensor,
     audience: 'For people who already own a sauna.',
     bullets: [
       'Live bench-height temperature and humidity',
@@ -66,7 +68,7 @@ export const PRODUCT_CARDS = [
   },
   {
     title: 'Pulse Plunge Sensor',
-    price: '$60',
+    price: P.sensor,
     audience: 'For any cold tub or plunge system.',
     bullets: [
       'Live water temperature to the degree',
@@ -78,7 +80,7 @@ export const PRODUCT_CARDS = [
   },
   {
     title: 'Pulse Contrast Bundle',
-    price: '$109',
+    price: P.bundle,
     audience: 'For people running hot and cold.',
     bullets: [
       'Two sensors (one sauna, one plunge) under one account',
@@ -87,7 +89,7 @@ export const PRODUCT_CARDS = [
     ],
     href: '/sensors/bundle',
     accentColor: 'heat' as const,
-    savings: 'Save $11 vs. buying separately',
+    savings: `Save ${P.bundleSavings} vs. buying separately`,
   },
 ];
 
@@ -98,7 +100,7 @@ export const PREMIUM = {
   heading: 'One subscription for everything.',
   description:
     'Optional upgrade layer. Applies across all sensors on your account. Start with the free tier and upgrade when you\u2019re ready to train more deliberately.',
-  price: '$4.99/mo or $39.99/yr',
+  price: P.appMonthlyOrAnnual,
   features: [
     'HR/HRV integration from wearables',
     'Live Coach timing windows and guardrails for sauna, plunge, and contrast',
@@ -115,8 +117,8 @@ export const COMPARISON = {
   heading: 'Quick comparison.',
   columns: ['Option', 'Hardware', 'Best for', 'Price'] as const,
   rows: [
-    ['Pulse Sauna Sensor', '1\u00d7 sauna sensor', 'Existing sauna owners', '$60'],
-    ['Pulse Plunge Sensor', '1\u00d7 plunge sensor', 'Any cold plunge / tub', '$60'],
-    ['Pulse Contrast Bundle', '2\u00d7 sensors', 'Sauna + plunge, contrast sessions', '$109'],
+    ['Pulse Sauna Sensor', '1\u00d7 sauna sensor', 'Existing sauna owners', P.sensor],
+    ['Pulse Plunge Sensor', '1\u00d7 plunge sensor', 'Any cold plunge / tub', P.sensor],
+    ['Pulse Contrast Bundle', '2\u00d7 sensors', 'Sauna + plunge, contrast sessions', P.bundle],
   ],
 };

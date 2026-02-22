@@ -1,4 +1,5 @@
 import type { HeroContent, CtaBannerContent } from './types/sections';
+import { P } from './pricing';
 
 /** Shopify handle for the Pulse Plunge Sensor product. */
 export const PRODUCT_HANDLE = 'pulse-plunge-sensor';
@@ -17,12 +18,12 @@ export const SEO = {
 export const HERO: HeroContent = {
   badge: 'Cold plunge sensor',
   title: 'Pulse Plunge Sensor',
-  fallbackPrice: '$60',
+  fallbackPrice: P.sensor,
   priceNote: 'one-time',
   description:
     'A compact Bluetooth temperature sensor plus the Yutori app. Drop it into your existing cold tub or mount it just below the waterline and get accurate water temperature, automatic session logging, and Live Coach guidance \u2014 no chiller or hardware changes required.',
   imagePlaceholder: 'Product imagery coming soon',
-  ctaLabel: 'Add to cart \u2014 $60',
+  ctaLabel: `Add to cart \u2014 ${P.sensor}`,
   ctaLoadingLabel: 'Adding to cart\u2026',
   ctaUnavailableLabel: 'Currently unavailable',
   ctaError: 'Unable to add to cart. Please try again.',
@@ -137,25 +138,25 @@ export const TRENDS = {
 
 export const PRICING = {
   label: 'Pricing',
-  heading: '$60, shipped.',
+  heading: `${P.sensor}, shipped.`,
   description:
     'One-time purchase. The free tier includes live water temperature and basic session history. Premium coaching is optional.',
   cards: [
     {
-      value: '$60',
+      value: P.sensor,
       title: 'Sensor + App',
       body: 'Hardware sensor, live water temperature, automatic plunge logging, basic session history.',
       highlight: true,
     },
     {
-      value: '$4.99/mo',
+      value: P.appMonthly,
       title: 'Yutori Premium',
       body: 'HR/HRV integration, Live Coach for cold exposure, long-term trends, AI insights, cold and contrast protocols, and safety workflows.',
       highlight: false,
     },
   ],
   finePrint:
-    'Premium is $4.99/month or $39.99/year. Sauna + plunge setups can run two sensors under the same account for contrast session tracking.',
+    `Premium is ${P.appMonthlyShort}/month or $39.99/year. Sauna + plunge setups can run two sensors under the same account for contrast session tracking.`,
 };
 
 /* ── Specs ─────────────────────────────────────────────────── */
@@ -210,7 +211,7 @@ export const SAFETY = {
 export const CTA: CtaBannerContent = {
   heading: 'Know your cold. Train your cold.',
   description:
-    '$60, one-time. Pair with the Yutori app for precise temperature, coaching, and safety rails.',
+    `${P.sensor}, one-time. Pair with the Yutori app for precise temperature, coaching, and safety rails.`,
   primaryLabel: 'Add to cart',
   primaryLoadingLabel: 'Adding to cart\u2026',
   primaryUnavailableLabel: 'Currently unavailable',

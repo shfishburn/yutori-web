@@ -1,3 +1,5 @@
+import { P } from './pricing';
+
 /** Shopify handle for the Pulse Sauna product. */
 export const PRODUCT_HANDLE = 'pulse-sauna';
 
@@ -15,18 +17,18 @@ export const SEO = {
 export const HERO = {
   badge: 'Backyard sauna',
   title: 'Pulse Sauna',
-  fallbackPrice: '$24,999',
+  fallbackPrice: P.sauna,
   priceNote: 'delivered',
   description:
     'A clear-cedar backyard sauna built around Saunum\u2019s even heat, integrated red/NIR light, and the Yutori app\u00a0\u2014 which turns your sessions into structured protocols with an emergency alert system in case something goes seriously wrong.',
   imagePlaceholder: 'Product imagery coming soon',
-  ctaLabel: 'Add deposit to cart \u2014 $2,500',
+  ctaLabel: `Add deposit to cart \u2014 ${P.saunaDeposit}`,
   ctaLoadingLabel: 'Adding to cart\u2026',
   ctaUnavailableLabel: 'Add to cart unavailable',
   ctaError: 'Unable to add the deposit to your cart. Please try again.',
   ctaUnavailableHelp:
     'Checkout is temporarily unavailable. Refresh this page or contact support@yutorilabs.com.',
-  depositNote: '10% non-refundable deposit \u00b7 12-week lead time',
+  depositNote: '20% non-refundable deposit \u00b7 12-week lead time',
   quickStats: [
     { value: '5\u2019\u00d77\u2019', label: 'Interior' },
     { value: 'R-19', label: 'Insulation' },
@@ -244,20 +246,20 @@ export const INSTALLATION = {
 
 export const PRICING = {
   label: 'Pricing & Delivery',
-  heading: '$24,999, delivered.',
+  heading: `${P.sauna}, delivered.`,
   description:
     'One price, delivered to your site. Target delivery within 12\u00a0weeks of signed agreement, subject to material and freight conditions.',
   cards: [
     {
-      value: '$2,500',
+      value: P.saunaDeposit,
       title: 'Deposit',
-      body: '10% non-refundable deposit due at site visit and contract signing to reserve a build slot and secure materials.',
+      body: '20% non-refundable deposit due at order signing to reserve a build slot and secure materials.',
       highlight: true,
     },
     {
-      value: '$22,499',
+      value: P.saunaBalance,
       title: 'Balance',
-      body: 'Remaining 90% due prior to shipment or at delivery, as specified in your purchase agreement.',
+      body: 'Remaining 80% due prior to shipment or at delivery, as specified in your purchase agreement.',
       highlight: false,
     },
     {
@@ -327,7 +329,7 @@ export const SAFETY = {
 export const CTA = {
   heading: 'Your backyard. Your protocol. Your data.',
   description:
-    '$24,999 delivered. 10% deposit reserves your build slot. Target delivery within 12\u00a0weeks of signed agreement.',
+    `${P.sauna} delivered. 20% deposit reserves your build slot. Target delivery within 12\u00a0weeks of signed agreement.`,
   primaryLabel: 'Add deposit to cart',
   primaryLoadingLabel: 'Adding to cart\u2026',
   primaryUnavailableLabel: 'Checkout unavailable',

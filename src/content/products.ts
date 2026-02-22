@@ -1,3 +1,5 @@
+import { P } from './pricing';
+
 /* ── Products listing page ─────────────────────────────────── */
 
 export const LISTING_SEO = {
@@ -23,42 +25,42 @@ export const LISTING_FALLBACK_PRODUCTS = [
     title: 'Pulse Sauna',
     description: 'Clear-cedar sauna with sensor-guided protocols and safety workflows.',
     href: '/sauna',
-    priceLabel: '$24,999',
+    priceLabel: P.sauna,
   },
   {
     id: 'fallback-pulse-plunge',
     title: 'Pulse Plunge',
     description: 'Copper plunge system with guided contrast-ready integration.',
     href: '/plunge',
-    priceLabel: '$24,999',
+    priceLabel: P.plunge,
   },
   {
     id: 'fallback-pulse-shower',
     title: 'Pulse Shower',
     description: 'Cold rinse and transition station for contrast workflows.',
     href: '/shower',
-    priceLabel: '$7,499',
+    priceLabel: `From ${P.showerWithout}`,
   },
   {
     id: 'fallback-sauna-sensor',
     title: 'Pulse Sauna Sensor',
     description: 'Bluetooth sauna sensor for any existing sauna setup.',
     href: '/sensors/sauna',
-    priceLabel: '$60',
+    priceLabel: P.sensor,
   },
   {
     id: 'fallback-plunge-sensor',
     title: 'Pulse Plunge Sensor',
     description: 'Bluetooth water temperature sensor for any plunge setup.',
     href: '/sensors/plunge',
-    priceLabel: '$60',
+    priceLabel: P.sensor,
   },
   {
     id: 'fallback-contrast-bundle',
     title: 'Pulse Contrast Bundle',
     description: 'Sauna + plunge sensors with bundle pricing.',
     href: '/sensors/bundle',
-    priceLabel: '$109',
+    priceLabel: P.bundle,
   },
 ];
 

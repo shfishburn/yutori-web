@@ -1,3 +1,5 @@
+import { P } from './pricing';
+
 /** Shopify handle for the Pulse Shower product. */
 export const PRODUCT_HANDLE = 'pulse-shower';
 
@@ -15,12 +17,12 @@ export const SEO = {
 export const HERO = {
   badge: 'Outdoor shower',
   title: 'Pulse Shower',
-  fallbackPrice: 'From $2,499',
+  fallbackPrice: `From ${P.showerWithout}`,
   priceNote: 'plus freight',
   description:
     'A clear-cedar outdoor shower with full copper plumbing, built to match Pulse Sauna and Pulse Plunge. Privacy-height enclosure, exposed copper riser and oversized rain head, garden-hose hookup\u00a0\u2014 with or without a tankless propane heater.',
   imagePlaceholder: 'Product imagery coming soon',
-  ctaLabel: 'Add deposit to cart \u2014 $499.80',
+  ctaLabel: `Add deposit to cart \u2014 ${P.showerWithoutDeposit}`,
   ctaLoadingLabel: 'Adding to cart\u2026',
   ctaUnavailableLabel: 'Add to cart unavailable',
   ctaError: 'Unable to add the deposit to your cart. Please try again.',
@@ -140,18 +142,18 @@ export const SYSTEM_FIT = {
 
 export const PRICING = {
   label: 'Pricing & Delivery',
-  heading: 'From $2,499, plus freight.',
+  heading: `From ${P.showerWithout}, plus freight.`,
   description:
     'Two configurations. Same cedar enclosure, copper plumbing, and rain head. Add the Eccotemp tankless heater for year-round hot-and-cold.',
   cards: [
     {
-      value: '$2,499',
+      value: P.showerWithout,
       title: 'Without Heater',
       body: 'Cedar enclosure, full copper plumbing, rain head, hose-bib connection. Hot side capped and mounting panel prepped for a future heater.',
       highlight: false,
     },
     {
-      value: '$3,499',
+      value: P.showerWith,
       title: 'With Eccotemp Heater',
       body: 'Everything above plus Eccotemp L5-class outdoor propane tankless heater, propane hose/regulator, and copper mixing valve for hot-and-cold control.',
       highlight: true,
@@ -183,7 +185,7 @@ export const SPECS: [string, string][] = [
   ['Fuel', '20\u00a0lb propane cylinder with hose and regulator (heater option)'],
   ['Configurations', '1) With heater (hot + cold) \u00a02) Without heater (cold-only / BYO)'],
   ['Use case', 'Outdoor shower beside Pulse Sauna and Pulse Plunge'],
-  ['Pricing', '$2,499 without heater \u00b7 $3,499 with heater \u00b7 freight additional'],
+  ['Pricing', `${P.showerWithout} without heater \u00b7 ${P.showerWith} with heater \u00b7 freight additional`],
   ['Lead time', '\u224812 weeks \u00b7 20% non-refundable deposit at order'],
 ];
 
@@ -215,7 +217,7 @@ export const SAFETY = {
 export const CTA = {
   heading: 'Complete the bathhouse.',
   description:
-    'From $2,499 plus freight. 20% deposit reserves your build slot. Target delivery within 12\u00a0weeks of signed agreement.',
+    `From ${P.showerWithout} plus freight. 20% deposit reserves your build slot. Target delivery within 12\u00a0weeks of signed agreement.`,
   primaryLabel: 'Add deposit to cart',
   primaryLoadingLabel: 'Adding to cart\u2026',
   primaryUnavailableLabel: 'Checkout unavailable',

@@ -1,3 +1,5 @@
+import { P } from './pricing';
+
 /** Shopify handle for the Pulse Plunge product. */
 export const PRODUCT_HANDLE = 'pulse-plunge';
 
@@ -15,12 +17,12 @@ export const SEO = {
 export const HERO = {
   badge: 'Japanese cold tub',
   title: 'Pulse Plunge',
-  fallbackPrice: '$5,999',
+  fallbackPrice: P.plunge,
   priceNote: 'plus freight',
   description:
     'A hand-crafted asnaro cold tub that turns deliberate cold exposure into a calm, measurable practice\u00a0\u2014 with live water-temperature tracking, structured timing, and trend analysis through the Yutori app.',
   imagePlaceholder: 'Product imagery coming soon',
-  ctaLabel: 'Add deposit to cart \u2014 $1,199.80',
+  ctaLabel: `Add deposit to cart \u2014 ${P.plungeDeposit}`,
   ctaLoadingLabel: 'Adding to cart\u2026',
   ctaUnavailableLabel: 'Add to cart unavailable',
   ctaError: 'Unable to add the deposit to your cart. Please try again.',
@@ -206,18 +208,18 @@ export const INSTALLATION = {
 
 export const PRICING = {
   label: 'Pricing & Delivery',
-  heading: '$5,999, plus freight.',
+  heading: `${P.plunge}, plus freight.`,
   description:
     'Hand-crafted asnaro cold tub with Pulse Plunge Sensor and lifetime Yutori Premium. Actual shipping quoted based on location and access.',
   cards: [
     {
-      value: '$1,199.80',
+      value: P.plungeDeposit,
       title: 'Deposit',
       body: '20% non-refundable deposit due at order signing to secure your build slot and materials.',
       highlight: true,
     },
     {
-      value: '$4,799.20',
+      value: P.plungeBalance,
       title: 'Balance',
       body: 'Remaining 80% plus actual shipping cost due prior to shipment or at delivery, per your purchase agreement.',
       highlight: false,
@@ -253,7 +255,7 @@ export const SPECS: [string, string][] = [
   ['Sensor protection', 'IP68/IP69K housing for submersion and spray'],
   ['App', 'Yutori iOS app with Apple Health integration, HR/HRV, Live Coach'],
   ['Included access', 'Lifetime Yutori Premium for this tub\u2019s owner'],
-  ['Price', '$5,999 USD plus freight \u00b7 12-week lead time \u00b7 20% non-refundable deposit'],
+  ['Price', `${P.plunge} USD plus freight \u00b7 12-week lead time \u00b7 20% non-refundable deposit`],
 ];
 
 /* ── Safety & Limitations ────────────────────────────────── */
@@ -288,7 +290,7 @@ export const SAFETY = {
 export const CTA = {
   heading: 'Your cold practice. Your data. Your ritual.',
   description:
-    '$5,999 plus freight. 20% deposit reserves your build slot. Target delivery within 12\u00a0weeks of signed agreement.',
+    `${P.plunge} plus freight. 20% deposit reserves your build slot. Target delivery within 12\u00a0weeks of signed agreement.`,
   primaryLabel: 'Add deposit to cart',
   primaryLoadingLabel: 'Adding to cart\u2026',
   primaryUnavailableLabel: 'Checkout unavailable',

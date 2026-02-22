@@ -1,4 +1,5 @@
 import type { HeroContent, CtaBannerContent } from './types/sections';
+import { P } from './pricing';
 
 /** Shopify handle for the Pulse Contrast Bundle product. */
 export const PRODUCT_HANDLE = 'pulse-contrast-bundle';
@@ -17,12 +18,12 @@ export const SEO = {
 export const HERO: HeroContent = {
   badge: 'Contrast bundle',
   title: 'Pulse Contrast Bundle',
-  fallbackPrice: '$109',
-  priceNote: 'one-time \u00b7 save $11',
+  fallbackPrice: P.bundle,
+  priceNote: `one-time \u00b7 save ${P.bundleSavings}`,
   description:
     'Two Bluetooth sensors \u2014 one for sauna, one for plunge \u2014 plus the Yutori app. Drop the plunge sensor in your cold tub, mount the sauna sensor at bench height, and track alternating hot and cold as a single contrast session with Live Coach guidance and an emergency-aware safety layer.',
   imagePlaceholder: 'Product imagery coming soon',
-  ctaLabel: 'Add to cart \u2014 $109',
+  ctaLabel: `Add to cart \u2014 ${P.bundle}`,
   ctaLoadingLabel: 'Adding to cart\u2026',
   ctaUnavailableLabel: 'Currently unavailable',
   ctaError: 'Unable to add to cart. Please try again.',
@@ -31,7 +32,7 @@ export const HERO: HeroContent = {
   depositNote: 'Ships directly \u00b7 No subscription required',
   quickStats: [
     { value: '2\u00d7', label: 'Sensors' },
-    { value: '$11', label: 'Savings' },
+    { value: P.bundleSavings, label: 'Savings' },
     { value: 'BLE 5.0', label: 'Radio' },
     { value: '1\u20132 yr', label: 'Battery each' },
   ],
@@ -105,25 +106,25 @@ export const CONTRAST_SESSION = {
 
 export const PRICING = {
   label: 'Pricing',
-  heading: '$109, shipped.',
+  heading: `${P.bundle}, shipped.`,
   description:
     'One-time purchase for both sensors. The free tier includes live temperature from both sensors and basic session history. Premium coaching is optional.',
   cards: [
     {
-      value: '$109',
+      value: P.bundle,
       title: 'Contrast Bundle',
       body: 'Two sensors (sauna + plunge), live temperature for each, automatic contrast session logging, basic session history.',
       highlight: true,
     },
     {
-      value: '$4.99/mo',
+      value: P.appMonthly,
       title: 'Yutori Premium',
       body: 'HR/HRV integration, Live Coach for sauna, plunge, and contrast, long-term trends, AI insights, protocols, and safety workflows.',
       highlight: false,
     },
   ],
   finePrint:
-    'Premium is $4.99/month or $39.99/year. Covers all sensors on your account. Individual sensors also available at $60 each.',
+    `Premium is ${P.appMonthlyShort}/month or $39.99/year. Covers all sensors on your account. Individual sensors also available at ${P.sensor} each.`,
 };
 
 /* ── Specs ─────────────────────────────────────────────────── */
@@ -142,7 +143,7 @@ export const SPECS: [string, string][] = [
   ['Radio', 'BLE 5.0, ~5\u201320\u00a0m indoor/outdoor range per sensor'],
   ['Platforms', 'iOS; Apple Health integration, others via connectors'],
   ['Contrast tracking', 'Automatic round detection when both sensors are paired'],
-  ['Premium', '$4.99/mo or $39.99/yr \u2014 covers all sensors on the account'],
+  ['Premium', `${P.appMonthlyOrAnnual} \u2014 covers all sensors on the account`],
 ];
 
 /* ── Safety ───────────────────────────────────────────────── */
@@ -177,7 +178,7 @@ export const SAFETY = {
 export const CTA: CtaBannerContent = {
   heading: 'One kit for hot and cold.',
   description:
-    '$109, one-time. Two sensors, one app, contrast session tracking from day one.',
+    `${P.bundle}, one-time. Two sensors, one app, contrast session tracking from day one.`,
   primaryLabel: 'Add to cart',
   primaryLoadingLabel: 'Adding to cart\u2026',
   primaryUnavailableLabel: 'Currently unavailable',
