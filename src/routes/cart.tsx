@@ -101,8 +101,8 @@ function CartPage() {
               <span className="font-semibold text-fg">{PAGE.totalLabel}</span>
               <span className="text-xl font-bold text-heat">
                 {formatPrice(
-                  cart!.cost.totalAmount.amount,
-                  cart!.cost.totalAmount.currencyCode,
+                  cart?.cost.totalAmount.amount ?? '0',
+                  cart?.cost.totalAmount.currencyCode ?? 'USD',
                 )}
               </span>
             </div>
@@ -138,7 +138,7 @@ function CartPage() {
             </label>
 
             <a
-              href={termsAccepted ? cart!.checkoutUrl : undefined}
+              href={termsAccepted ? cart?.checkoutUrl : undefined}
               onClick={(e) => {
                 if (!termsAccepted) {
                   e.preventDefault();
