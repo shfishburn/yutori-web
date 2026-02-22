@@ -162,10 +162,25 @@ type AdminDraftOrder = {
   status: string;
 };
 
+function rewriteInvoiceUrl(url: string): string {
+  // Shopify generates invoice URLs using the store's primary domain (yutorilabs.com),
+  // but that domain points to Vercel. Rewrite to use the myshopify domain instead.
+  try {
+    const parsed = new URL(url);
+    const myshopifyDomain = getShopifyAdminEnv().storeDomain;
+    if (parsed.hostname !== myshopifyDomain) {
+      parsed.hostname = myshopifyDomain;
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 function mapDraftOrderToShopifyCart(order: AdminDraftOrder): ShopifyCart {
   return {
     id: `gid://shopify/DraftOrder/${order.id}`,
-    checkoutUrl: order.invoice_url,
+    checkoutUrl: rewriteInvoiceUrl(order.invoice_url),
     totalQuantity: order.line_items.reduce((sum, li) => sum + li.quantity, 0),
     cost: {
       totalAmount: {
