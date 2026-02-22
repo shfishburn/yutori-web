@@ -9,7 +9,8 @@ import {
 } from '../server/shopify';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
-import { selectCheckoutVariant } from '../lib/shopifyVariants';
+import { withCtaPrice } from '../lib/ctaLabel';
+import { selectCheckoutVariant, selectDisplayVariant } from '../lib/shopifyVariants';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -80,7 +81,24 @@ function PlungeSensorPage() {
   const [cartError, setCartError] = useState<string | null>(null);
 
   const checkoutVariant = selectCheckoutVariant(variants);
+  const displayVariant = selectDisplayVariant(variants);
   const checkoutAvailable = Boolean(checkoutVariant);
+
+  const displayPrice = displayVariant?.price ?? product?.priceRange?.maxVariantPrice ?? null;
+  const livePrice = displayPrice
+    ? formatPrice(displayPrice.amount, displayPrice.currencyCode)
+    : null;
+
+  const checkoutPrice = checkoutVariant
+    ? formatPrice(checkoutVariant.price.amount, checkoutVariant.price.currencyCode)
+    : null;
+
+  const heroContent = checkoutPrice
+    ? { ...HERO, ctaLabel: withCtaPrice(HERO.ctaLabel, checkoutPrice) }
+    : HERO;
+  const ctaContent = checkoutPrice
+    ? { ...CTA, primaryLabel: withCtaPrice(CTA.primaryLabel, checkoutPrice) }
+    : CTA;
 
   const handleAddToCart = async () => {
     if (!checkoutVariant) return;
@@ -94,13 +112,11 @@ function PlungeSensorPage() {
   };
 
   const images: ShopifyImage[] = product?.images?.edges.map((e) => e.node) ?? [];
-  const price = product?.priceRange?.minVariantPrice;
-  const livePrice = price ? formatPrice(price.amount, price.currencyCode) : null;
 
   return (
     <main className="flex-1">
       <SectionHero
-        content={HERO}
+        content={heroContent}
         images={images}
         livePrice={livePrice}
         checkoutAvailable={checkoutAvailable}
@@ -139,7 +155,7 @@ function PlungeSensorPage() {
       </SectionWrapper>
 
       <SectionCtaBanner
-        content={CTA}
+        content={ctaContent}
         checkoutAvailable={checkoutAvailable}
         cartLoading={cartLoading}
         onAddToCart={handleAddToCart}
