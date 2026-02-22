@@ -26,19 +26,19 @@ export const HOW_IT_WORKS = {
   heading: 'Same hardware, same app \u2014 just pointed at heat, cold, or both.',
   steps: [
     {
-      icon: '\ud83d\udce1',
+      icon: 'signal',
       iconLabel: 'Sensor',
       title: 'Sensor in the environment',
       body: 'A RuuviTag Pro\u2013class sensor measures temperature (plus humidity for sauna) at the point your body actually experiences it.',
     },
     {
-      icon: '\ud83d\udcf1',
+      icon: 'phone',
       iconLabel: 'Phone',
       title: 'App on your phone + watch',
       body: 'Yutori reads sensor data over Bluetooth, pulls HR and HRV from Apple Health, and turns each heat or cold round into a structured session.',
     },
     {
-      icon: '\ud83e\udde0',
+      icon: 'cpu-chip',
       iconLabel: 'Brain',
       title: 'Coach in the background',
       body: 'Live Coach builds personal timing windows, watches heart-rate and temperature guardrails, and logs trends over weeks with optional protocols and emergency alerts.',

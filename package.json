@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@mdx-js/react": "^3.1.1",
     "@shopify/storefront-api-client": "^1.0.9",
     "@tailwindcss/typography": "^0.5.19",

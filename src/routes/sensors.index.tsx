@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { buildSeoHead } from '../lib/seo';
+import { Icon } from '../components/Icon';
 import {
   SEO,
   HERO,
@@ -60,8 +61,8 @@ function SensorsLandingPage() {
             {HOW_IT_WORKS.steps.map((s, i) => (
               <div key={s.title} className="rounded-2xl border border-edge bg-canvas p-7">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-lg" role="img" aria-label={s.iconLabel}>
-                    {s.icon}
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface">
+                    <Icon name={s.icon} className="h-5 w-5 text-fg-muted" aria-label={s.iconLabel} />
                   </span>
                   <span className="text-xs font-bold text-fg-subtle uppercase tracking-wider">
                     Step {i + 1}

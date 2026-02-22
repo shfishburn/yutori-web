@@ -81,21 +81,21 @@ export const HEAT_CLIMATE = {
     'The Saunum Air 7.5 electric heater with integrated climate equalizer pulls hot ceiling air and cool floor air into a mixing chamber, then redistributes a more even, oxygen-rich stream across the room.',
   cards: [
     {
-      icon: '\ud83c\udf21\ufe0f',
+      icon: 'sun',
       iconLabel: 'Thermometer',
       title: 'Climate Equalizer',
       body: 'Saunum\u2019s fan system blends ceiling and floor air for uniform temperature distribution. No more \u201cscorching at the top, cold at your feet.\u201d',
       highlight: true,
     },
     {
-      icon: '\ud83d\udca8',
+      icon: 'cloud',
       iconLabel: 'Wind',
       title: 'Engineered Ventilation',
       body: 'Fresh-air intake near the floor, extraction duct mid-wall on the opposite side. Cross-room airflow for fresh air during sessions and post-session drying.',
       highlight: false,
     },
     {
-      icon: '\ud83d\udcf1',
+      icon: 'phone',
       iconLabel: 'Phone',
       title: 'Remote Pre-heat',
       body: 'Saunum wall controller plus the Saunum mobile app. Start heating from inside the house and walk into a ready sauna.',

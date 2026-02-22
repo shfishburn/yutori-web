@@ -69,21 +69,21 @@ export const COPPER = {
     'All visible plumbing is copper: riser, mixing runs, valves, and the oversized round rain-head arm. Connect directly to an exterior hose bib\u2014no house re-plumbing required.',
   cards: [
     {
-      icon: '\ud83d\udeb0',
+      icon: 'user',
       iconLabel: 'Faucet',
       title: 'Garden-hose feed',
       body: 'Standard garden-hose fitting connects to an exterior hose bib. No house re-plumbing required.',
       highlight: false,
     },
     {
-      icon: '\ud83d\udd27',
+      icon: 'wrench',
       iconLabel: 'Wrench',
       title: 'Full copper manifold',
       body: 'Individual shutoffs so a plumber can isolate or service the heater and lines easily.',
       highlight: false,
     },
     {
-      icon: '\ud83d\udca7',
+      icon: 'beaker',
       iconLabel: 'Water drop',
       title: 'Oversized rain head',
       body: 'Copper-finish round rain head for a calm, soaking spray. Mounted on an exposed copper arm.',
@@ -99,14 +99,14 @@ export const CONFIGURATIONS = {
   heading: 'With or without heat.',
   cards: [
     {
-      icon: '\ud83d\udd25',
+      icon: 'fire',
       iconLabel: 'Fire',
       title: 'With Eccotemp heater',
       body: 'Includes an Eccotemp L5-class 1.5\u00a0GPM outdoor propane tankless heater. Cold feed from your garden hose runs into the heater; hot outlet plus cold bypass feed a copper mixing valve for true hot-and-cold control.',
       highlight: true,
     },
     {
-      icon: '\u2744\ufe0f',
+      icon: 'sparkles',
       iconLabel: 'Snowflake',
       title: 'Without heater (cold-only / BYO)',
       body: 'Same cedar structure, copper riser, manifold, and rain head. Hose-bib feed runs directly to the shower line. Hot side capped and mounting panel prepped for a future heater.',

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { Icon } from '../components/Icon';
 import {
   buildSeoHead,
   DEFAULT_OG_IMAGE_HEIGHT,
@@ -86,7 +87,7 @@ function HomePage() {
                 to={p.href}
                 className={`group rounded-2xl border ${p.ringColor} p-7 transition-colors hover:border-edge-strong`}
               >
-                <div className="text-3xl" role="img" aria-label={p.iconLabel}>{p.icon}</div>
+                <Icon name={p.icon} className="h-7 w-7" aria-label={p.iconLabel} />
                 <h3 className={`mt-4 text-lg font-bold ${p.titleColor}`}>{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
               </Link>
@@ -111,7 +112,7 @@ function HomePage() {
               to={p.href}
               className="group flex flex-col rounded-2xl border border-edge bg-surface p-7 transition-all hover:border-edge-strong hover:bg-surface-raised"
             >
-              <div className="text-3xl" role="img" aria-label={p.iconLabel}>{p.icon}</div>
+              <Icon name={p.icon} className="h-7 w-7" aria-label={p.iconLabel} />
               <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-fg-subtle">{p.subtitle}</p>
               <h3 className="mt-1 text-xl font-bold text-fg">{p.title}</h3>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-fg-muted">{p.description}</p>
@@ -179,7 +180,7 @@ function HomePage() {
                   <div className="text-xs text-fg-subtle">{PHONE_MOCKUP.streakLabel}</div>
                   <div className="text-xl font-bold text-fg">{PHONE_MOCKUP.streakValue}</div>
                 </div>
-                <div className="text-3xl" role="img" aria-label="Fire streak">{'\ud83d\udd25'}</div>
+                <Icon name="fire" className="h-7 w-7 text-heat" aria-label="Fire streak" />
               </div>
             </div>
           </div>
@@ -197,7 +198,7 @@ function HomePage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {BENEFITS.map((b) => (
               <div key={b.label} className="rounded-2xl border border-edge bg-canvas p-5">
-                <div className="text-2xl" role="img" aria-label={b.iconLabel}>{b.icon}</div>
+                <Icon name={b.icon} className="h-6 w-6 text-fg-muted" aria-label={b.iconLabel} />
                 <div className="mt-3 font-semibold text-fg">{b.label}</div>
                 <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">{b.body}</p>
               </div>

@@ -111,21 +111,21 @@ export const TRENDS = {
     'Over weeks, the same data becomes a picture of your cold adaptation.',
   cards: [
     {
-      icon: '\ud83d\udcc8',
+      icon: 'trending-up',
       iconLabel: 'Chart',
       title: 'Duration Trends',
       body: 'Average cold plunge duration and typical water temps, tracked over weeks and months.',
       highlight: false,
     },
     {
-      icon: '\u2764\ufe0f',
+      icon: 'heart',
       iconLabel: 'Heart',
       title: 'Cold-Shock HR',
       body: 'Peak heart rate in early vs later sessions. See your autonomic adaptation in real numbers.',
       highlight: true,
     },
     {
-      icon: '\u2744\ufe0f',
+      icon: 'sparkles',
       iconLabel: 'Snowflake',
       title: 'Tolerance Tracking',
       body: 'How long you can stay in a given temperature band comfortably, tracked and trended over time.',

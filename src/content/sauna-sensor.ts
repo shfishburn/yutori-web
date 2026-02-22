@@ -111,21 +111,21 @@ export const HUMIDITY = {
     'Because the sensor measures humidity as well as temperature, the app can guide your session comfort.',
   cards: [
     {
-      icon: '\ud83d\udca7',
+      icon: 'beaker',
       iconLabel: 'Water droplet',
       title: 'Low Humidity Alert',
       body: 'When humidity is very low at a given temperature, the app gently suggests adding water to the rocks for softer, less harsh heat.',
       highlight: false,
     },
     {
-      icon: '\ud83c\udf21\ufe0f',
+      icon: 'sun',
       iconLabel: 'Thermometer',
       title: 'High Humidity Warning',
       body: 'When both humidity and temperature are high, it recommends shorter rounds and longer cool-downs since high humidity impairs evaporative cooling.',
       highlight: true,
     },
     {
-      icon: '\u2744\ufe0f',
+      icon: 'sparkles',
       iconLabel: 'Snowflake',
       title: '\u201cSauna Ready\u201d Alerts',
       body: 'Set your preferred temperature and get notified when the room reaches it \u2014 not a generic number, your number.',

@@ -31,7 +31,7 @@ export const HERO = {
 
 export const PILLARS = [
   {
-    icon: '\ud83d\udd25',
+    icon: 'fire',
     iconLabel: 'Fire',
     ringColor: 'border-heat-dim/40 bg-heat-subtle',
     titleColor: 'text-heat',
@@ -40,7 +40,7 @@ export const PILLARS = [
     href: '/sauna',
   },
   {
-    icon: '\ud83e\uddca',
+    icon: 'cube',
     iconLabel: 'Ice cube',
     ringColor: 'border-accent-dim/40 bg-accent-subtle',
     titleColor: 'text-accent',
@@ -49,7 +49,7 @@ export const PILLARS = [
     href: '/plunge',
   },
   {
-    icon: '\ud83d\udebf',
+    icon: 'cloud',
     iconLabel: 'Shower',
     ringColor: 'border-edge bg-overlay',
     titleColor: 'text-fg-muted',
@@ -58,7 +58,7 @@ export const PILLARS = [
     href: '/shower',
   },
   {
-    icon: '\ud83d\udce1',
+    icon: 'signal',
     iconLabel: 'Satellite antenna',
     ringColor: 'border-edge bg-overlay',
     titleColor: 'text-fg-subtle',
@@ -84,7 +84,7 @@ export const PRODUCTS = [
     description:
       'Clear-cedar, Saunum even heat, integrated red/NIR light, emergency alert system.',
     href: '/sauna',
-    icon: '\ud83d\udd25',
+    icon: 'fire',
     iconLabel: 'Fire',
     accentClass: 'text-heat',
     ctaLabel: 'See Pulse Sauna \u2192',
@@ -95,7 +95,7 @@ export const PRODUCTS = [
     description:
       'Hand-crafted asnaro wood, live water-temperature tracking, no chiller required.',
     href: '/plunge',
-    icon: '\u2744\ufe0f',
+    icon: 'sparkles',
     iconLabel: 'Snowflake',
     accentClass: 'text-accent',
     ctaLabel: 'See Pulse Plunge \u2192',
@@ -106,7 +106,7 @@ export const PRODUCTS = [
     description:
       'Clear-cedar enclosure, full copper plumbing, rain head \u2014 the rinse between your hot and cold.',
     href: '/shower',
-    icon: '\ud83d\udebf',
+    icon: 'cloud',
     iconLabel: 'Shower',
     accentClass: 'text-fg-muted',
     ctaLabel: 'See Pulse Shower \u2192',
@@ -117,7 +117,7 @@ export const PRODUCTS = [
     description:
       'Bluetooth sensors for any existing sauna or cold tub. Pairs with the Yutori app in minutes.',
     href: '/sensors',
-    icon: '\ud83d\udce1',
+    icon: 'signal',
     iconLabel: 'Sensor',
     accentClass: 'text-fg-subtle',
     ctaLabel: 'See sensors \u2192',
@@ -168,14 +168,14 @@ export const BENEFITS_SECTION = {
 };
 
 export const BENEFITS = [
-  { icon: '\u26a1', iconLabel: 'Lightning bolt', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },
-  { icon: '\ud83d\ude34', iconLabel: 'Sleeping face', label: 'Sleep', body: 'Post-sauna temperature drop primes your body for deep slow-wave sleep.' },
-  { icon: '\ud83e\udde0', iconLabel: 'Brain', label: 'Mental clarity', body: 'Cold exposure spikes norepinephrine \u2014 the focus and mood neurotransmitter.' },
-  { icon: '\u2764\ufe0f', iconLabel: 'Heart', label: 'Cardiovascular', body: 'Regular heat sessions lower resting heart rate and improve arterial function.' },
-  { icon: '\ud83d\udd25', iconLabel: 'Fire', label: 'Metabolism', body: 'Brown adipose activation from cold exposure increases caloric burn at rest.' },
-  { icon: '\ud83d\udee1\ufe0f', iconLabel: 'Shield', label: 'Immunity', body: 'Hyperthermia stimulates white blood cell production and immune response.' },
-  { icon: '\ud83d\udcc9', iconLabel: 'Chart decreasing', label: 'Inflammation', body: 'Contrast therapy cycles reduce systemic inflammation markers (IL-6, CRP).' },
-  { icon: '\ud83e\uddec', iconLabel: 'DNA', label: 'Longevity', body: 'Heat shock proteins and cold adaptation are linked to healthspan markers.' },
+  { icon: 'bolt', iconLabel: 'Lightning bolt', label: 'Recovery', body: 'Heat stimulates HSP70 proteins that accelerate muscle repair between sessions.' },
+  { icon: 'moon', iconLabel: 'Sleeping face', label: 'Sleep', body: 'Post-sauna temperature drop primes your body for deep slow-wave sleep.' },
+  { icon: 'cpu-chip', iconLabel: 'Brain', label: 'Mental clarity', body: 'Cold exposure spikes norepinephrine \u2014 the focus and mood neurotransmitter.' },
+  { icon: 'heart', iconLabel: 'Heart', label: 'Cardiovascular', body: 'Regular heat sessions lower resting heart rate and improve arterial function.' },
+  { icon: 'fire', iconLabel: 'Fire', label: 'Metabolism', body: 'Brown adipose activation from cold exposure increases caloric burn at rest.' },
+  { icon: 'shield-check', iconLabel: 'Shield', label: 'Immunity', body: 'Hyperthermia stimulates white blood cell production and immune response.' },
+  { icon: 'trending-down', iconLabel: 'Chart decreasing', label: 'Inflammation', body: 'Contrast therapy cycles reduce systemic inflammation markers (IL-6, CRP).' },
+  { icon: 'beaker', iconLabel: 'DNA', label: 'Longevity', body: 'Heat shock proteins and cold adaptation are linked to healthspan markers.' },
 ];
 
 /* ── Bottom CTA ───────────────────────────────────────────── */

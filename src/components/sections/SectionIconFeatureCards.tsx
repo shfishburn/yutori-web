@@ -1,4 +1,5 @@
 import type { IconFeatureCard } from '../../content/types/sections';
+import { Icon } from '../Icon';
 
 type Props = {
   label?: string;
@@ -52,7 +53,7 @@ export function SectionIconFeatureCards({
                 : 'border-edge bg-surface'
             }`}
           >
-            <div className="text-2xl" role="img" aria-label={c.iconLabel}>{c.icon}</div>
+            <Icon name={c.icon} className="h-6 w-6 text-fg-muted" aria-label={c.iconLabel} />
             <h3 className={`mt-4 font-bold ${c.highlight ? hlText : 'text-fg'}`}>
               {c.title}
             </h3>
