@@ -1,11 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
 
-type ShopifyEnv = {
-  storeDomain: string;
-  storefrontToken: string;
-  apiVersion: string;
-};
-
 type ShopifyAdminEnv = {
   storeDomain: string;
   adminToken: string;
@@ -62,35 +56,32 @@ function getShopifyAdminEnv(): ShopifyAdminEnv {
   return { storeDomain, adminToken, apiVersion };
 }
 
-function getShopifyEnv(): ShopifyEnv {
-  const storeDomain = normalizeStoreDomain(process.env.SHOPIFY_STORE_DOMAIN);
-  const storefrontToken = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN);
-  const apiVersion = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_API_VERSION) ?? '2024-10';
-
-  const missingEnvVars: string[] = [];
-  if (!storeDomain) {
-    missingEnvVars.push('SHOPIFY_STORE_DOMAIN');
-  }
-  if (!storefrontToken) {
-    missingEnvVars.push('SHOPIFY_STOREFRONT_ACCESS_TOKEN');
-  }
-
-  if (missingEnvVars.length > 0 || !storeDomain || !storefrontToken) {
-    throw new Error(`Missing Shopify env vars: ${missingEnvVars.join(', ')}`);
-  }
-
-  return { storeDomain, storefrontToken, apiVersion };
-}
-
 /* ── Admin REST API helper ────────────────────────────────── */
 
-async function shopifyAdminRest<T>(path: string): Promise<T> {
+async function shopifyAdminRest<T>(
+  path: string,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+  body?: unknown,
+): Promise<T> {
   const { storeDomain, adminToken, apiVersion } = getShopifyAdminEnv();
   const url = `https://${storeDomain}/admin/api/${apiVersion}/${path}`;
 
   const res = await fetch(url, {
-    headers: { 'X-Shopify-Access-Token': adminToken },
+    method,
+    headers: {
+      'X-Shopify-Access-Token': adminToken,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
+
+  if (method === 'DELETE') {
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Shopify Admin ${res.status}: ${text.slice(0, 500)}`);
+    }
+    return {} as T;
+  }
 
   const json: unknown = await res.json().catch(() => null);
   if (!res.ok) {
@@ -144,53 +135,65 @@ function mapAdminVariantToShopify(
   };
 }
 
-/* ── Storefront GraphQL helper ────────────────────────────── */
+/* ── Draft Order helpers ──────────────────────────────────── */
 
-function summarizePayload(payload: unknown): string {
-  try {
-    return JSON.stringify(payload).slice(0, 500);
-  } catch {
-    return String(payload).slice(0, 500);
-  }
+function extractNumericId(gid: string): number {
+  const parts = gid.split('/');
+  return parseInt(parts[parts.length - 1] ?? '0', 10);
 }
 
-async function shopifyGraphql<T>(
-  query: string,
-  variables: Record<string, unknown> = {},
-): Promise<T> {
-  const { storeDomain, storefrontToken, apiVersion } = getShopifyEnv();
+type AdminDraftOrderLineItem = {
+  id: number;
+  variant_id: number | null;
+  title: string;
+  variant_title: string | null;
+  quantity: number;
+  price: string;
+  product_id: number | null;
+  image?: { src: string; alt?: string | null } | null;
+};
 
-  const url = `https://${storeDomain}/api/${apiVersion}/graphql.json`;
+type AdminDraftOrder = {
+  id: number;
+  invoice_url: string;
+  total_price: string;
+  currency: string;
+  line_items: AdminDraftOrderLineItem[];
+  status: string;
+};
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': storefrontToken,
+function mapDraftOrderToShopifyCart(order: AdminDraftOrder): ShopifyCart {
+  return {
+    id: `gid://shopify/DraftOrder/${order.id}`,
+    checkoutUrl: order.invoice_url,
+    totalQuantity: order.line_items.reduce((sum, li) => sum + li.quantity, 0),
+    cost: {
+      totalAmount: {
+        amount: order.total_price,
+        currencyCode: order.currency,
+      },
     },
-    body: JSON.stringify({ query, variables }),
-  });
-
-  const json: unknown = await res.json().catch(() => null);
-  const jsonObj =
-    json && typeof json === 'object' ? (json as Record<string, unknown>) : null;
-
-  if (!res.ok) {
-    throw new Error(
-      `Shopify request failed (${res.status}): ${summarizePayload(jsonObj)}`,
-    );
-  }
-
-  const errors = jsonObj?.errors;
-  if (Array.isArray(errors) && errors.length > 0) {
-    throw new Error(`Shopify GraphQL errors: ${summarizePayload(errors)}`);
-  }
-
-  const data = jsonObj?.data;
-  if (!data) {
-    throw new Error('Shopify response missing data');
-  }
-  return data as T;
+    lines: {
+      edges: order.line_items.map((li) => ({
+        node: {
+          id: String(li.id),
+          quantity: li.quantity,
+          merchandise: {
+            id: li.variant_id ? `gid://shopify/ProductVariant/${li.variant_id}` : '',
+            title: li.variant_title ?? 'Default Title',
+            product: {
+              title: li.title,
+              handle: '',
+              featuredImage: li.image
+                ? { url: li.image.src, altText: li.image.alt ?? null }
+                : null,
+            },
+            price: { amount: li.price, currencyCode: order.currency },
+          },
+        },
+      })),
+    },
+  };
 }
 
 export type ShopifyImage = { url: string; altText: string | null };
@@ -238,125 +241,6 @@ export type ShopifyCart = {
   lines: { edges: { node: ShopifyCartLine }[] };
 };
 
-/* Storefront product queries removed — product reads now use Admin REST API */
-
-const CART_CREATE_MUTATION = `#graphql
-mutation CartCreate($lines: [CartLineInput!]!) {
-  cartCreate(input: { lines: $lines }) {
-    cart {
-      id
-      checkoutUrl
-      totalQuantity
-      cost { totalAmount { amount currencyCode } }
-      lines(first: 20) {
-        edges {
-          node {
-            id
-            quantity
-            merchandise {
-              ... on ProductVariant {
-                id
-                title
-                product { title handle featuredImage { url altText } }
-                price { amount currencyCode }
-              }
-            }
-          }
-        }
-      }
-    }
-    userErrors { field message }
-  }
-}
-`;
-
-const CART_LINES_ADD_MUTATION = `#graphql
-mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
-  cartLinesAdd(cartId: $cartId, lines: $lines) {
-    cart {
-      id
-      checkoutUrl
-      totalQuantity
-      cost { totalAmount { amount currencyCode } }
-      lines(first: 20) {
-        edges {
-          node {
-            id
-            quantity
-            merchandise {
-              ... on ProductVariant {
-                id
-                title
-                product { title handle featuredImage { url altText } }
-                price { amount currencyCode }
-              }
-            }
-          }
-        }
-      }
-    }
-    userErrors { field message }
-  }
-}
-`;
-
-const CART_QUERY = `#graphql
-query Cart($cartId: ID!) {
-  cart(id: $cartId) {
-    id
-    checkoutUrl
-    totalQuantity
-    cost { totalAmount { amount currencyCode } }
-    lines(first: 20) {
-      edges {
-        node {
-          id
-          quantity
-          merchandise {
-            ... on ProductVariant {
-              id
-              title
-              product { title handle featuredImage { url altText } }
-              price { amount currencyCode }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-`;
-
-const CART_LINES_REMOVE_MUTATION = `#graphql
-mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
-  cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-    cart {
-      id
-      checkoutUrl
-      totalQuantity
-      cost { totalAmount { amount currencyCode } }
-      lines(first: 20) {
-        edges {
-          node {
-            id
-            quantity
-            merchandise {
-              ... on ProductVariant {
-                id
-                title
-                product { title handle featuredImage { url altText } }
-                price { amount currencyCode }
-              }
-            }
-          }
-        }
-      }
-    }
-    userErrors { field message }
-  }
-}
-`;
-
 export const getProductVariants = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => {
     const obj = input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
@@ -383,22 +267,19 @@ export const createCart = createServerFn({ method: 'POST' })
     if (!Array.isArray(lines) || lines.length === 0) {
       throw new Error('lines is required');
     }
-    return { lines: lines as Array<{ merchandiseId: string; quantity: number; sellingPlanId?: string }> };
+    return { lines: lines as Array<{ merchandiseId: string; quantity: number }> };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      cartCreate: { cart: ShopifyCart | null; userErrors: { field: string; message: string }[] };
-    }>(CART_CREATE_MUTATION, { lines: ctx.data.lines });
-
-    if (data.cartCreate.userErrors.length > 0) {
-      throw new Error(data.cartCreate.userErrors.map((e) => e.message).join(', '));
-    }
-
-    if (!data.cartCreate.cart) {
-      throw new Error('Shopify cartCreate returned null cart');
-    }
-
-    return data.cartCreate.cart;
+    const lineItems = ctx.data.lines.map((line) => ({
+      variant_id: extractNumericId(line.merchandiseId),
+      quantity: line.quantity,
+    }));
+    const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
+      'draft_orders.json',
+      'POST',
+      { draft_order: { line_items: lineItems } },
+    );
+    return mapDraftOrderToShopifyCart(data.draft_order);
   });
 
 export const addCartLines = createServerFn({ method: 'POST' })
@@ -414,23 +295,25 @@ export const addCartLines = createServerFn({ method: 'POST' })
     }
     return {
       cartId,
-      lines: lines as Array<{ merchandiseId: string; quantity: number; sellingPlanId?: string }>,
+      lines: lines as Array<{ merchandiseId: string; quantity: number }>,
     };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      cartLinesAdd: { cart: ShopifyCart | null; userErrors: { field: string; message: string }[] };
-    }>(CART_LINES_ADD_MUTATION, { cartId: ctx.data.cartId, lines: ctx.data.lines });
-
-    if (data.cartLinesAdd.userErrors.length > 0) {
-      throw new Error(data.cartLinesAdd.userErrors.map((e) => e.message).join(', '));
-    }
-
-    if (!data.cartLinesAdd.cart) {
-      throw new Error('Shopify cartLinesAdd returned null cart');
-    }
-
-    return data.cartLinesAdd.cart;
+    const orderId = extractNumericId(ctx.data.cartId);
+    const current = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
+      `draft_orders/${orderId}.json`,
+    );
+    const existingLines = current.draft_order.line_items.map((li) => ({ id: li.id }));
+    const newLines = ctx.data.lines.map((line) => ({
+      variant_id: extractNumericId(line.merchandiseId),
+      quantity: line.quantity,
+    }));
+    const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
+      `draft_orders/${orderId}.json`,
+      'PUT',
+      { draft_order: { line_items: [...existingLines, ...newLines] } },
+    );
+    return mapDraftOrderToShopifyCart(data.draft_order);
   });
 
 export const getCart = createServerFn({ method: 'POST' })
@@ -443,10 +326,18 @@ export const getCart = createServerFn({ method: 'POST' })
     return { cartId };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{ cart: ShopifyCart | null }>(CART_QUERY, {
-      cartId: ctx.data.cartId,
-    });
-    return data.cart;
+    const orderId = extractNumericId(ctx.data.cartId);
+    try {
+      const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
+        `draft_orders/${orderId}.json`,
+      );
+      return mapDraftOrderToShopifyCart(data.draft_order);
+    } catch (error) {
+      if (error instanceof Error && /\b404\b/.test(error.message)) {
+        return null;
+      }
+      throw error;
+    }
   });
 
 export const removeCartLines = createServerFn({ method: 'POST' })
@@ -463,19 +354,30 @@ export const removeCartLines = createServerFn({ method: 'POST' })
     return { cartId, lineIds: lineIds as string[] };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      cartLinesRemove: { cart: ShopifyCart | null; userErrors: { field: string; message: string }[] };
-    }>(CART_LINES_REMOVE_MUTATION, { cartId: ctx.data.cartId, lineIds: ctx.data.lineIds });
-
-    if (data.cartLinesRemove.userErrors.length > 0) {
-      throw new Error(data.cartLinesRemove.userErrors.map((e) => e.message).join(', '));
+    const orderId = extractNumericId(ctx.data.cartId);
+    const lineIdsToRemove = new Set(ctx.data.lineIds.map(Number));
+    const current = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
+      `draft_orders/${orderId}.json`,
+    );
+    const remaining = current.draft_order.line_items.filter(
+      (li) => !lineIdsToRemove.has(li.id),
+    );
+    if (remaining.length === 0) {
+      await shopifyAdminRest(`draft_orders/${orderId}.json`, 'DELETE');
+      return {
+        id: current.draft_order.id.toString(),
+        checkoutUrl: '',
+        totalQuantity: 0,
+        cost: { totalAmount: { amount: '0.00', currencyCode: current.draft_order.currency } },
+        lines: { edges: [] as ShopifyCart['lines']['edges'] },
+      } satisfies ShopifyCart;
     }
-
-    if (!data.cartLinesRemove.cart) {
-      throw new Error('Shopify cartLinesRemove returned null cart');
-    }
-
-    return data.cartLinesRemove.cart;
+    const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
+      `draft_orders/${orderId}.json`,
+      'PUT',
+      { draft_order: { line_items: remaining.map((li) => ({ id: li.id })) } },
+    );
+    return mapDraftOrderToShopifyCart(data.draft_order);
   });
 
 export const getProducts = createServerFn({ method: 'GET' }).handler(async () => {
