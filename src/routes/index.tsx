@@ -53,7 +53,7 @@ function HomePage() {
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <Link
-              to="/products"
+              to="/sauna"
               className="rounded-xl bg-accent px-7 py-3.5 font-semibold text-accent-fg transition-opacity hover:opacity-90"
             >
               {HERO.primaryCta}
@@ -81,11 +81,15 @@ function HomePage() {
         <div className="mx-auto max-w-6xl px-6 py-16">
           <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
             {PILLARS.map((p) => (
-              <div key={p.title} className={`rounded-2xl border ${p.ringColor} p-7`}>
+              <Link
+                key={p.title}
+                to={p.href}
+                className={`group rounded-2xl border ${p.ringColor} p-7 transition-colors hover:border-edge-strong`}
+              >
                 <div className="text-3xl" role="img" aria-label={p.iconLabel}>{p.icon}</div>
                 <h3 className={`mt-4 text-lg font-bold ${p.titleColor}`}>{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -100,7 +104,7 @@ function HomePage() {
           <h2 className="text-3xl font-extrabold text-fg">{PRODUCTS_SECTION.heading}</h2>
           <p className="mx-auto mt-3 max-w-xl text-fg-muted">{PRODUCTS_SECTION.description}</p>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {PRODUCTS.map((p) => (
             <Link
               key={p.href}
@@ -208,8 +212,22 @@ function HomePage() {
           <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-heat/5 via-transparent to-accent/5" />
           <h2 className="relative text-3xl font-extrabold text-fg sm:text-4xl">{CTA.heading}</h2>
           <p className="relative mt-4 mx-auto max-w-xl text-fg-muted">{CTA.description}</p>
-          <div className="relative mt-8 flex flex-wrap justify-center gap-4">
-            <Link to="/products" className="rounded-xl bg-accent px-8 py-3.5 font-semibold text-accent-fg transition-opacity hover:opacity-90">{CTA.ctaLabel}</Link>
+          <div className="relative mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              to={CTA.primaryLink.href}
+              className="rounded-xl bg-accent px-8 py-3.5 font-semibold text-accent-fg transition-opacity hover:opacity-90"
+            >
+              {CTA.primaryLink.label}
+            </Link>
+            {CTA.secondaryLinks.map((l) => (
+              <Link
+                key={l.href}
+                to={l.href}
+                className="rounded-xl border border-edge bg-surface px-6 py-3 text-sm font-semibold text-fg transition-colors hover:bg-overlay"
+              >
+                {l.label}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

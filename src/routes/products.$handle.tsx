@@ -72,7 +72,7 @@ function ProductError() {
       <p className="text-2xl font-bold text-fg">{DETAIL_ERROR.heading}</p>
       <p className="mt-2 text-fg-muted">{DETAIL_ERROR.body}</p>
       <Link
-        to="/products"
+        to="/"
         className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
       >
         {DETAIL_ERROR.ctaLabel}
@@ -118,7 +118,7 @@ function ProductPage() {
         <p className="text-2xl font-bold text-fg">{DETAIL_NOT_FOUND.heading}</p>
         <p className="mt-2 text-fg-muted">{DETAIL_NOT_FOUND.body}</p>
         <Link
-          to="/products"
+          to="/"
           className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
         >
           {DETAIL_NOT_FOUND.ctaLabel}
@@ -132,7 +132,7 @@ function ProductPage() {
       <div className="border-b border-edge bg-surface">
         <div className="mx-auto max-w-6xl px-6 py-4">
           <nav className="flex items-center gap-2 text-sm text-fg-subtle">
-            <Link to="/products" className="transition-colors hover:text-fg-muted">Products</Link>
+            <Link to="/" className="transition-colors hover:text-fg-muted">Home</Link>
             <span>/</span>
             <span className="text-fg-muted">{product.title}</span>
           </nav>

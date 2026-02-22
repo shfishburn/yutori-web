@@ -10,15 +10,15 @@ export const SEO = {
 /* ── Hero ─────────────────────────────────────────────────── */
 
 export const HERO = {
-  badge: 'Sensor-connected sauna & cold plunge',
+  badge: 'Sensor-connected thermal wellness hardware',
   titleLines: [
     'Track your heat.',
     'Time your sauna.',
     'Know your cold.',
   ],
   description:
-    'Yutori pairs sauna and cold plunge hardware with sensors and an app that tells you exactly what happened \u2014 and when to go again. No guesswork. No manual logging.',
-  primaryCta: 'Shop hardware',
+    'Yutori pairs sauna, cold plunge, and shower hardware with sensors and an app that tells you exactly what happened \u2014 and when to go again. No guesswork. No manual logging.',
+  primaryCta: 'Start with heat \u2192',
   secondaryCta: 'See the app',
   stats: [
     { value: '50\u00b0F', label: 'avg cold plunge' },
@@ -37,6 +37,7 @@ export const PILLARS = [
     titleColor: 'text-heat',
     title: 'Sauna',
     body: 'Clear-cedar heat chamber with Saunum even-heat distribution, integrated red/NIR light, and embedded sensors.',
+    href: '/sauna',
   },
   {
     icon: '\ud83e\uddca',
@@ -45,6 +46,7 @@ export const PILLARS = [
     titleColor: 'text-accent',
     title: 'Cold Plunge',
     body: 'Hand-crafted asnaro cold tub with live water-temperature tracking and a structured timing protocol.',
+    href: '/plunge',
   },
   {
     icon: '\ud83d\udebf',
@@ -53,6 +55,7 @@ export const PILLARS = [
     titleColor: 'text-fg-muted',
     title: 'Shower',
     body: 'Cedar outdoor shower with full copper plumbing and an oversized rain head \u2014 the contrast rinse between heat and cold.',
+    href: '/shower',
   },
   {
     icon: '\ud83d\udce1',
@@ -61,6 +64,7 @@ export const PILLARS = [
     titleColor: 'text-fg-subtle',
     title: 'Sensors',
     body: 'Bluetooth sensors install in minutes and stream ambient temperature, session start/end, and duration to the Yutori app.',
+    href: '/sensors',
   },
 ];
 
@@ -106,6 +110,17 @@ export const PRODUCTS = [
     iconLabel: 'Shower',
     accentClass: 'text-fg-muted',
     ctaLabel: 'See Pulse Shower \u2192',
+  },
+  {
+    title: 'Pulse Sensors',
+    subtitle: 'Sauna \u00b7 plunge \u00b7 bundle',
+    description:
+      'Bluetooth sensors for any existing sauna or cold tub. Pairs with the Yutori app in minutes.',
+    href: '/sensors',
+    icon: '\ud83d\udce1',
+    iconLabel: 'Sensor',
+    accentClass: 'text-fg-subtle',
+    ctaLabel: 'See sensors \u2192',
   },
 ];
 
@@ -166,7 +181,12 @@ export const BENEFITS = [
 /* ── Bottom CTA ───────────────────────────────────────────── */
 
 export const CTA = {
-  heading: 'Start your first session today.',
+  heading: 'Ready to build yours?',
   description: 'Pick your hardware, pair the sensor, and let the app do the rest.',
-  ctaLabel: 'Shop hardware',
+  primaryLink: { label: 'See Pulse Sauna \u2192', href: '/sauna' },
+  secondaryLinks: [
+    { label: 'Pulse Plunge', href: '/plunge' },
+    { label: 'Pulse Shower', href: '/shower' },
+    { label: 'Sensors', href: '/sensors' },
+  ],
 };

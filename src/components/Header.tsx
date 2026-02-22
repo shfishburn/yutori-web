@@ -42,12 +42,6 @@ export function Header() {
           >
             {NAV.sensors}
           </Link>
-          <Link
-            to="/products"
-            className="text-fg-muted transition-colors hover:text-fg [&.active]:text-accent"
-          >
-            {NAV.products}
-          </Link>
         </nav>
 
         {/* Desktop CTA */}
@@ -79,7 +73,7 @@ export function Header() {
             ) : null}
           </Link>
           <Link
-            to="/products"
+            to="/sauna"
             className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
           >
             {NAV.shopNow}
@@ -138,13 +132,6 @@ export function Header() {
               {NAV.sensors}
             </Link>
             <Link
-              to="/products"
-              onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
-            >
-              {NAV.products}
-            </Link>
-            <Link
               to="/cart"
               onClick={() => setOpen(false)}
               className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
@@ -169,7 +156,7 @@ export function Header() {
           </nav>
           <div className="mt-4 border-t border-edge pt-4">
             <Link
-              to="/products"
+              to="/sauna"
               onClick={() => setOpen(false)}
               className="block w-full rounded-xl bg-accent px-4 py-3 text-center text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
             >

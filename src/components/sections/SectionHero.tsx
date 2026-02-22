@@ -64,7 +64,7 @@ export function SectionHero({
 
       <div className="relative mx-auto max-w-6xl px-6 pb-20 pt-20 lg:pt-28">
         <nav className="mb-8 flex items-center gap-2 text-sm text-fg-subtle">
-          <Link to="/products" className="transition-colors hover:text-fg-muted">Products</Link>
+          <Link to="/" className="transition-colors hover:text-fg-muted">Home</Link>
           <span>/</span>
           <span className="text-fg-muted">{content.title}</span>
         </nav>

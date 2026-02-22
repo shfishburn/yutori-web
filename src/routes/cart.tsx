@@ -47,7 +47,7 @@ function CartPage() {
           <div className="mt-12 text-center">
             <p className="text-lg text-fg-muted">{PAGE.emptyMessage}</p>
             <Link
-              to="/products"
+              to="/"
               className="mt-6 inline-block rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-fg transition-opacity hover:opacity-90"
             >
               {PAGE.emptyCtaLabel}
