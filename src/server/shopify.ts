@@ -6,6 +6,12 @@ type ShopifyEnv = {
   apiVersion: string;
 };
 
+type ShopifyAdminEnv = {
+  storeDomain: string;
+  adminToken: string;
+  apiVersion: string;
+};
+
 const QUOTED_VALUE_PATTERN = /^(['"])(.*)\1$/;
 
 function cleanEnvValue(value: string | undefined): string | undefined {
@@ -37,6 +43,25 @@ function normalizeStoreDomain(value: string | undefined): string | undefined {
   return cleaned.replace(/^https?:\/\//i, '').replace(/\/+$/g, '');
 }
 
+function getShopifyAdminEnv(): ShopifyAdminEnv {
+  const storeDomain = normalizeStoreDomain(
+    process.env.SHOPIFY_ADMIN_STORE_DOMAIN ?? process.env.SHOPIFY_STORE_DOMAIN,
+  );
+  const adminToken = cleanEnvValue(
+    process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN ?? process.env.SHOPIFY_ADMIN_ACCESS_TOKEN,
+  );
+  const apiVersion = cleanEnvValue(process.env.SHOPIFY_ADMIN_API_VERSION) ?? '2024-01';
+
+  if (!storeDomain || !adminToken) {
+    const missing: string[] = [];
+    if (!storeDomain) missing.push('SHOPIFY_ADMIN_STORE_DOMAIN or SHOPIFY_STORE_DOMAIN');
+    if (!adminToken) missing.push('SHOPIFY_ADMIN_ACCESS_TOKEN');
+    throw new Error(`Missing Shopify Admin env vars: ${missing.join(', ')}`);
+  }
+
+  return { storeDomain, adminToken, apiVersion };
+}
+
 function getShopifyEnv(): ShopifyEnv {
   const storeDomain = normalizeStoreDomain(process.env.SHOPIFY_STORE_DOMAIN);
   const storefrontToken = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN);
@@ -56,6 +81,70 @@ function getShopifyEnv(): ShopifyEnv {
 
   return { storeDomain, storefrontToken, apiVersion };
 }
+
+/* ── Admin REST API helper ────────────────────────────────── */
+
+async function shopifyAdminRest<T>(path: string): Promise<T> {
+  const { storeDomain, adminToken, apiVersion } = getShopifyAdminEnv();
+  const url = `https://${storeDomain}/admin/api/${apiVersion}/${path}`;
+
+  const res = await fetch(url, {
+    headers: { 'X-Shopify-Access-Token': adminToken },
+  });
+
+  const json: unknown = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(`Shopify Admin ${res.status}: ${JSON.stringify(json).slice(0, 500)}`);
+  }
+  return json as T;
+}
+
+type AdminProduct = {
+  id: number;
+  handle: string;
+  title: string;
+  body_html: string | null;
+  images: { id: number; src: string; alt: string | null }[];
+  variants: {
+    id: number;
+    title: string;
+    price: string;
+    available?: boolean;
+  }[];
+};
+
+function mapAdminProductToShopify(p: AdminProduct): ShopifyProduct {
+  const images = p.images.map((img) => ({ url: img.src, altText: img.alt }));
+  const prices = p.variants.map((v) => parseFloat(v.price)).filter((n) => !isNaN(n));
+  const minPrice = prices.length > 0 ? Math.min(...prices).toFixed(2) : '0.00';
+  const maxPrice = prices.length > 0 ? Math.max(...prices).toFixed(2) : '0.00';
+
+  return {
+    id: `gid://shopify/Product/${p.id}`,
+    handle: p.handle,
+    title: p.title,
+    description: p.body_html?.replace(/<[^>]*>/g, '') ?? '',
+    featuredImage: images[0] ?? null,
+    images: { edges: images.map((node) => ({ node })) },
+    priceRange: {
+      minVariantPrice: { amount: minPrice, currencyCode: 'USD' },
+      maxVariantPrice: { amount: maxPrice, currencyCode: 'USD' },
+    },
+  };
+}
+
+function mapAdminVariantToShopify(
+  v: AdminProduct['variants'][number],
+): ShopifyVariant {
+  return {
+    id: `gid://shopify/ProductVariant/${v.id}`,
+    title: v.title,
+    availableForSale: v.available !== false,
+    price: { amount: parseFloat(v.price).toFixed(2), currencyCode: 'USD' },
+  };
+}
+
+/* ── Storefront GraphQL helper ────────────────────────────── */
 
 function summarizePayload(payload: unknown): string {
   try {
@@ -149,85 +238,7 @@ export type ShopifyCart = {
   lines: { edges: { node: ShopifyCartLine }[] };
 };
 
-const PRODUCTS_QUERY = `#graphql
-query Products($first: Int!) {
-  products(first: $first) {
-    edges {
-      node {
-        id
-        handle
-        title
-        description
-        featuredImage {
-          url
-          altText
-        }
-        images(first: 20) {
-          edges { node { url altText } }
-        }
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-          maxVariantPrice {
-            amount
-            currencyCode
-          }
-        }
-      }
-    }
-  }
-}
-`;
-
-const PRODUCT_BY_HANDLE_QUERY = `#graphql
-query ProductByHandle($handle: String!) {
-  productByHandle(handle: $handle) {
-    id
-    handle
-    title
-    description
-    featuredImage {
-      url
-      altText
-    }
-    images(first: 20) {
-      edges { node { url altText } }
-    }
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-      maxVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-  }
-}
-`;
-
-const PRODUCT_VARIANTS_QUERY = `#graphql
-query ProductVariants($handle: String!) {
-  productByHandle(handle: $handle) {
-    variants(first: 20) {
-      edges {
-        node {
-          id
-          title
-          availableForSale
-          price {
-            amount
-            currencyCode
-          }
-        }
-      }
-    }
-  }
-}
-`;
+/* Storefront product queries removed — product reads now use Admin REST API */
 
 const CART_CREATE_MUTATION = `#graphql
 mutation CartCreate($lines: [CartLineInput!]!) {
@@ -356,11 +367,13 @@ export const getProductVariants = createServerFn({ method: 'POST' })
     return { handle };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      productByHandle: { variants: { edges: { node: ShopifyVariant }[] } } | null;
-    }>(PRODUCT_VARIANTS_QUERY, { handle: ctx.data.handle });
-
-    return data.productByHandle?.variants.edges.map((e) => e.node) ?? [];
+    // Use Admin REST API — find product by handle, then return its variants
+    const data = await shopifyAdminRest<{ products: AdminProduct[] }>(
+      `products.json?handle=${encodeURIComponent(ctx.data.handle)}&fields=id,handle,variants`,
+    );
+    const product = data.products[0];
+    if (!product) return [];
+    return product.variants.map(mapAdminVariantToShopify);
   });
 
 export const createCart = createServerFn({ method: 'POST' })
@@ -466,11 +479,10 @@ export const removeCartLines = createServerFn({ method: 'POST' })
   });
 
 export const getProducts = createServerFn({ method: 'GET' }).handler(async () => {
-  const data = await shopifyGraphql<{
-    products: { edges: { node: ShopifyProduct }[] };
-  }>(PRODUCTS_QUERY, { first: 12 });
-
-  return data.products.edges.map((e) => e.node);
+  const data = await shopifyAdminRest<{ products: AdminProduct[] }>(
+    'products.json?limit=12&status=active',
+  );
+  return data.products.map(mapAdminProductToShopify);
 });
 
 export const getProductByHandle = createServerFn({ method: 'POST' })
@@ -483,9 +495,9 @@ export const getProductByHandle = createServerFn({ method: 'POST' })
     return { handle };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{ productByHandle: ShopifyProduct | null }>(
-      PRODUCT_BY_HANDLE_QUERY,
-      { handle: ctx.data.handle },
+    const data = await shopifyAdminRest<{ products: AdminProduct[] }>(
+      `products.json?handle=${encodeURIComponent(ctx.data.handle)}&status=active`,
     );
-    return data.productByHandle;
+    const product = data.products[0];
+    return product ? mapAdminProductToShopify(product) : null;
   });
