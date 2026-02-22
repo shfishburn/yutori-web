@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
+import type { UnitSystem } from '../lib/units';
 
 /* ── Types ─────────────────────────────────────────────────────── */
 
@@ -12,6 +13,7 @@ export type UserProfile = {
   saunaType: 'finnish' | 'infrared' | 'steam' | null;
   rltEnabled: boolean;
   rltPanel: Record<string, NonNullable<unknown>> | null;
+  unitPreference: UnitSystem;
 };
 
 type SupabaseProfileRow = {
@@ -24,6 +26,7 @@ type SupabaseProfileRow = {
   sauna_type: string | null;
   rlt_enabled: boolean | null;
   rlt_panel: Record<string, NonNullable<unknown>> | null;
+  unit_preference: string | null;
 };
 
 /* ── Env helpers (shared with sessions.ts) ─────────────────────── */
@@ -84,6 +87,7 @@ function mapRowToProfile(row: SupabaseProfileRow): UserProfile {
     saunaType: VALID_SAUNA_TYPES.has(row.sauna_type ?? '') ? (row.sauna_type as UserProfile['saunaType']) : null,
     rltEnabled: row.rlt_enabled ?? true,
     rltPanel: row.rlt_panel ?? null,
+    unitPreference: row.unit_preference === 'metric' ? 'metric' : 'imperial',
   };
 }
 
@@ -102,6 +106,7 @@ function profileToRow(
     sauna_type: profile.saunaType,
     rlt_enabled: profile.rltEnabled,
     rlt_panel: profile.rltPanel,
+    unit_preference: profile.unitPreference,
   };
 }
 
@@ -115,6 +120,7 @@ const EMPTY_PROFILE: UserProfile = {
   saunaType: null,
   rltEnabled: true,
   rltPanel: null,
+  unitPreference: 'imperial',
 };
 
 /* ── Server functions ──────────────────────────────────────────── */
@@ -132,7 +138,7 @@ export const getProfile = createServerFn({ method: 'POST' })
     const user = await verifySupabaseToken(ctx.data.accessToken);
     const env = getSupabaseEnv();
 
-    const url = `${env.url}/rest/v1/user_profiles?user_id=eq.${user.id}&select=gender,age,weight_kg,height_cm,resting_hr,body_fat_pct,sauna_type,rlt_enabled,rlt_panel&limit=1`;
+    const url = `${env.url}/rest/v1/user_profiles?user_id=eq.${user.id}&select=gender,age,weight_kg,height_cm,resting_hr,body_fat_pct,sauna_type,rlt_enabled,rlt_panel,unit_preference&limit=1`;
     const response = await fetch(url, {
       headers: {
         apikey: env.anonKey,

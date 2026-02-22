@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirm email change</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f7;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#E8632B,#D45520);padding:32px 24px;text-align:center;">
+              <h1 style="margin:0;font-size:24px;font-weight:700;color:#ffffff;letter-spacing:0.3px;">Yutori</h1>
+              <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.85);">Thermal Wellness</p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 24px;">
+              <h2 style="margin:0 0 12px;font-size:20px;font-weight:600;color:#1c1c1e;">Confirm your new email</h2>
+              <p style="margin:0 0 24px;font-size:15px;line-height:1.5;color:#3a3a3c;">
+                We received a request to change the email address on your Yutori account to <strong>{{ .Email }}</strong>. Tap below to confirm this change.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 32px;background-color:#E8632B;color:#ffffff;font-size:16px;font-weight:600;text-decoration:none;border-radius:12px;">
+                      Confirm Email Change
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#8e8e93;">
+                If you didn't request this change, please secure your account by changing your password immediately.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:16px 24px 24px;border-top:1px solid #e5e5ea;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#8e8e93;">
+                &copy; 2026 <a href="https://yutorilabs.com" style="color:#8e8e93;text-decoration:none;">yutorilabs.com</a> &middot; Yutori Labs
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

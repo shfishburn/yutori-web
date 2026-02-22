@@ -6,7 +6,9 @@ import { SegmentedControl, type Segment } from '../components/SegmentedControl';
 import { SessionCard, formatDuration } from '../components/SessionCard';
 import { useAuth } from '../lib/auth';
 import { buildSeoHead } from '../lib/seo';
+import { tempValue, tempUnit, type UnitSystem } from '../lib/units';
 import { getDashboardStats, type DashboardStats, type TempDataPoint, type HealthDataPoint } from '../server/sessions';
+import { getProfile } from '../server/profile';
 import { DASHBOARD } from '../content/dashboard';
 
 export const Route = createFileRoute('/dashboard')({
@@ -128,7 +130,7 @@ function WeeklyChart({ stats }: { stats: DashboardStats }) {
 
 /* ── Temperature Trends ────────────────────────────────────────── */
 
-function TempTrends({ trends }: { trends: TempDataPoint[] }) {
+function TempTrends({ trends, units }: { trends: TempDataPoint[]; units: UnitSystem }) {
   if (trends.length === 0) {
     return (
       <div className="rounded-3xl border border-edge bg-surface p-6 sm:p-8">
@@ -142,10 +144,14 @@ function TempTrends({ trends }: { trends: TempDataPoint[] }) {
   const saunaTemps = trends.filter((t) => t.sessionType === 'sauna');
   const coldTemps = trends.filter((t) => t.sessionType === 'cold_plunge');
 
-  const saunaMin = saunaTemps.length > 0 ? Math.min(...saunaTemps.map((t) => t.tempF)) : 0;
-  const saunaMax = saunaTemps.length > 0 ? Math.max(...saunaTemps.map((t) => t.tempF)) : 0;
-  const coldMin = coldTemps.length > 0 ? Math.min(...coldTemps.map((t) => t.tempF)) : 0;
-  const coldMax = coldTemps.length > 0 ? Math.max(...coldTemps.map((t) => t.tempF)) : 0;
+  const saunaVals = saunaTemps.map((t) => tempValue(t.tempC, units));
+  const coldVals = coldTemps.map((t) => tempValue(t.tempC, units));
+
+  const saunaMin = saunaVals.length > 0 ? Math.min(...saunaVals) : 0;
+  const saunaMax = saunaVals.length > 0 ? Math.max(...saunaVals) : 0;
+  const coldMin = coldVals.length > 0 ? Math.min(...coldVals) : 0;
+  const coldMax = coldVals.length > 0 ? Math.max(...coldVals) : 0;
+  const unit = tempUnit(units);
 
   return (
     <div className="rounded-3xl border border-edge bg-surface p-6 sm:p-8">
@@ -159,9 +165,9 @@ function TempTrends({ trends }: { trends: TempDataPoint[] }) {
             Peak sauna
           </p>
           <div className="mt-3 flex h-20 items-end gap-1 rounded-xl bg-canvas px-3 pb-2">
-            {saunaTemps.map((t, i) => {
+            {saunaVals.map((val, i) => {
               const range = saunaMax - saunaMin || 1;
-              const h = 20 + ((t.tempF - saunaMin) / range) * 80;
+              const h = 20 + ((val - saunaMin) / range) * 80;
               return (
                 <div
                   key={i}
@@ -169,15 +175,15 @@ function TempTrends({ trends }: { trends: TempDataPoint[] }) {
                   style={{ height: `${h}%` }}
                 >
                   <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium text-heat opacity-0 transition-opacity group-hover:opacity-100">
-                    {t.tempF}°F
+                    {val}{unit}
                   </span>
                 </div>
               );
             })}
           </div>
           <div className="mt-1 flex justify-between px-3 text-[10px] text-fg-subtle">
-            <span>{saunaMin}°F</span>
-            <span>{saunaMax}°F</span>
+            <span>{saunaMin}{unit}</span>
+            <span>{saunaMax}{unit}</span>
           </div>
         </div>
       ) : null}
@@ -189,10 +195,10 @@ function TempTrends({ trends }: { trends: TempDataPoint[] }) {
             Low cold plunge
           </p>
           <div className="mt-3 flex h-20 items-end gap-1 rounded-xl bg-canvas px-3 pb-2">
-            {coldTemps.map((t, i) => {
+            {coldVals.map((val, i) => {
               const range = coldMax - coldMin || 1;
               // Invert: lower temp = taller bar (colder is more impressive)
-              const h = 20 + ((coldMax - t.tempF) / range) * 80;
+              const h = 20 + ((coldMax - val) / range) * 80;
               return (
                 <div
                   key={i}
@@ -200,15 +206,15 @@ function TempTrends({ trends }: { trends: TempDataPoint[] }) {
                   style={{ height: `${h}%` }}
                 >
                   <span className="absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
-                    {t.tempF}°F
+                    {val}{unit}
                   </span>
                 </div>
               );
             })}
           </div>
           <div className="mt-1 flex justify-between px-3 text-[10px] text-fg-subtle">
-            <span>{coldMin}°F</span>
-            <span>{coldMax}°F</span>
+            <span>{coldMin}{unit}</span>
+            <span>{coldMax}{unit}</span>
           </div>
         </div>
       ) : null}
@@ -513,6 +519,7 @@ function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('overview');
+  const [units, setUnits] = useState<UnitSystem>('imperial');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -537,6 +544,13 @@ function DashboardPage() {
       .finally(() => {
         if (active) setLoading(false);
       });
+
+    // Fetch profile for unit preference (non-blocking)
+    getProfile({ data: { accessToken: session.accessToken } })
+      .then((p) => {
+        if (active) setUnits(p.unitPreference);
+      })
+      .catch(() => { /* keep default */ });
 
     return () => { active = false; };
   }, [session?.accessToken, user]);
@@ -675,7 +689,7 @@ function DashboardPage() {
           <>
             {/* Temperature trends */}
             <div className="mt-6">
-              <TempTrends trends={stats.tempTrends} />
+              <TempTrends trends={stats.tempTrends} units={units} />
             </div>
 
             {/* Health impact metrics */}

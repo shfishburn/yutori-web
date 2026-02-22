@@ -376,7 +376,8 @@ export type WeeklyBucket = {
 export type TempDataPoint = {
   date: string;
   sessionType: 'sauna' | 'cold_plunge';
-  tempF: number;
+  /** Raw Celsius value — the UI converts using the user's unit preference */
+  tempC: number;
 };
 
 export type HealthDataPoint = {
@@ -417,9 +418,7 @@ export type DashboardStats = {
   healthMetrics: HealthMetrics;
 };
 
-function cToF(c: number): number {
-  return Math.round((c * 9) / 5 + 32);
-}
+/* cToF removed – conversion now happens on the client via lib/units */
 
 /** Get the Monday of the week containing `date`. */
 function getMonday(date: Date): Date {
@@ -620,9 +619,9 @@ function computeTempTrends(sessions: SessionSummary[]): TempDataPoint[] {
   for (const s of sessions) {
     const pointDate = s.endedAt ?? s.startedAt;
     if (s.sessionType === 'sauna' && s.peakTempC != null) {
-      points.push({ date: pointDate, sessionType: 'sauna', tempF: cToF(s.peakTempC) });
+      points.push({ date: pointDate, sessionType: 'sauna', tempC: s.peakTempC });
     } else if (s.sessionType === 'cold_plunge' && s.minTempC != null) {
-      points.push({ date: pointDate, sessionType: 'cold_plunge', tempF: cToF(s.minTempC) });
+      points.push({ date: pointDate, sessionType: 'cold_plunge', tempC: s.minTempC });
     }
     if (points.length >= 20) break;
   }
