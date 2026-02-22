@@ -39,6 +39,8 @@ type AuthContextValue = {
   authError: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<SignUpResult>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  updatePasswordWithToken: (accessToken: string, newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
 };
@@ -76,7 +78,7 @@ async function requestSupabaseJson<T>(
   env: SupabaseEnv,
   path: string,
   options: {
-    method?: 'GET' | 'POST';
+    method?: 'GET' | 'POST' | 'PUT';
     accessToken?: string;
     body?: unknown;
   } = {},
@@ -228,6 +230,22 @@ async function refreshWithToken(env: SupabaseEnv, refreshToken: string): Promise
   return nextSession;
 }
 
+async function requestPasswordResetEmail(env: SupabaseEnv, email: string): Promise<void> {
+  // Supabase will use the project's configured Site URL + redirect allowlist.
+  await requestSupabaseJson(env, 'auth/v1/recover', {
+    method: 'POST',
+    body: { email },
+  });
+}
+
+async function updatePassword(env: SupabaseEnv, accessToken: string, password: string): Promise<void> {
+  await requestSupabaseJson(env, 'auth/v1/user', {
+    method: 'PUT',
+    accessToken,
+    body: { password },
+  });
+}
+
 function shouldRefreshSoon(expiresAt: number): boolean {
   return expiresAt <= Math.floor(Date.now() / 1000) + SESSION_REFRESH_SKEW_SECONDS;
 }
@@ -313,6 +331,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { requiresEmailConfirmation: true };
     },
     [clearSession, env, persistSession],
+  );
+
+  const requestPasswordReset = useCallback(
+    async (email: string) => {
+      if (!env) {
+        throw new Error('Auth is not configured for this environment.');
+      }
+      await requestPasswordResetEmail(env, email);
+      setAuthError(null);
+    },
+    [env],
+  );
+
+  const updatePasswordWithToken = useCallback(
+    async (accessToken: string, newPassword: string) => {
+      if (!env) {
+        throw new Error('Auth is not configured for this environment.');
+      }
+      await updatePassword(env, accessToken, newPassword);
+      setAuthError(null);
+    },
+    [env],
   );
 
   const signOut = useCallback(async () => {
@@ -411,10 +451,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authError,
       signIn,
       signUp,
+      requestPasswordReset,
+      updatePasswordWithToken,
       signOut,
       refreshSession,
     }),
-    [authError, loading, refreshSession, session, signIn, signOut, signUp],
+    [
+      authError,
+      loading,
+      refreshSession,
+      requestPasswordReset,
+      session,
+      signIn,
+      signOut,
+      signUp,
+      updatePasswordWithToken,
+    ],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;
