@@ -1,3 +1,4 @@
+import { createStorefrontApiClient } from '@shopify/storefront-api-client';
 import { createServerFn } from '@tanstack/react-start';
 
 type ShopifyAdminEnv = {
@@ -135,99 +136,175 @@ function mapAdminVariantToShopify(
   };
 }
 
-/* ── Draft Order helpers ──────────────────────────────────── */
+/* ── Storefront API client ────────────────────────────────── */
 
-function extractNumericId(gid: string): number {
-  const parts = gid.split('/');
-  return parseInt(parts[parts.length - 1] ?? '0', 10);
+function getStorefrontClient() {
+  const storeDomain = normalizeStoreDomain(process.env.SHOPIFY_STORE_DOMAIN);
+  const accessToken = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN);
+  const apiVersion = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_API_VERSION) ?? '2024-10';
+
+  if (!storeDomain || !accessToken) {
+    const missing: string[] = [];
+    if (!storeDomain) missing.push('SHOPIFY_STORE_DOMAIN');
+    if (!accessToken) missing.push('SHOPIFY_STOREFRONT_ACCESS_TOKEN');
+    throw new Error(`Missing Shopify Storefront env vars: ${missing.join(', ')}`);
+  }
+
+  return createStorefrontApiClient({
+    storeDomain: `https://${storeDomain}`,
+    publicAccessToken: accessToken,
+    apiVersion,
+  });
 }
 
-type AdminDraftOrderLineItem = {
-  id: number;
-  variant_id: number | null;
-  title: string;
-  variant_title: string | null;
-  quantity: number;
-  price: string;
-  product_id: number | null;
-  image?: { src: string; alt?: string | null } | null;
-};
+async function storefrontRequest<T>(
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<T> {
+  const client = getStorefrontClient();
+  const { data, errors } = await client.request<T>(query, { variables });
+  if (errors) {
+    throw new Error(
+      `Storefront API error: ${JSON.stringify(errors.graphQLErrors ?? errors.message ?? errors)}`,
+    );
+  }
+  if (!data) {
+    throw new Error('Storefront API returned no data');
+  }
+  return data;
+}
 
-type AdminDraftOrder = {
-  id: number;
-  invoice_url: string;
-  total_price: string;
-  currency: string;
-  line_items: AdminDraftOrderLineItem[];
-  status: string;
-};
+/* ── Storefront GraphQL fragments & operations ──────────────── */
 
-function rewriteInvoiceUrl(url: string): string {
-  // Shopify generates invoice URLs using the store's primary domain (yutorilabs.com),
-  // but that domain points to Vercel. Rewrite to use the myshopify domain instead.
-  try {
-    const parsed = new URL(url);
-    const myshopifyDomain = getShopifyAdminEnv().storeDomain;
-    if (parsed.hostname !== myshopifyDomain) {
-      parsed.hostname = myshopifyDomain;
+const CART_FIELDS = /* GraphQL */ `
+  fragment CartFields on Cart {
+    id
+    checkoutUrl
+    totalQuantity
+    cost {
+      totalAmount { amount currencyCode }
     }
-    return parsed.toString();
-  } catch {
-    return url;
+    lines(first: 100) {
+      edges {
+        node {
+          id
+          quantity
+          sellingPlanAllocation {
+            sellingPlan { id name }
+            priceAdjustments {
+              price { amount currencyCode }
+            }
+          }
+          merchandise {
+            ... on ProductVariant {
+              id
+              title
+              price { amount currencyCode }
+              product {
+                title
+                handle
+                featuredImage { url altText }
+              }
+            }
+          }
+        }
+      }
+    }
   }
-}
+`;
 
-async function fetchProductImageMap(
-  productIds: number[],
-): Promise<Map<number, ShopifyImage>> {
-  if (productIds.length === 0) return new Map();
-  const ids = [...new Set(productIds)].join(',');
-  const data = await shopifyAdminRest<{ products: { id: number; images: { src: string; alt: string | null }[] }[] }>(
-    `products.json?ids=${ids}&fields=id,images`,
-  );
-  const map = new Map<number, ShopifyImage>();
-  for (const p of data.products) {
-    const img = p.images[0];
-    if (img) map.set(p.id, { url: img.src, altText: img.alt });
+const CART_CREATE_MUTATION = /* GraphQL */ `
+  ${CART_FIELDS}
+  mutation CartCreate($input: CartInput!) {
+    cartCreate(input: $input) {
+      cart { ...CartFields }
+      userErrors { field message }
+    }
   }
-  return map;
-}
+`;
 
-function mapDraftOrderToShopifyCart(
-  order: AdminDraftOrder,
-  imageMap: Map<number, ShopifyImage> = new Map(),
-): ShopifyCart {
+const CART_LINES_ADD_MUTATION = /* GraphQL */ `
+  ${CART_FIELDS}
+  mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
+    cartLinesAdd(cartId: $cartId, lines: $lines) {
+      cart { ...CartFields }
+      userErrors { field message }
+    }
+  }
+`;
+
+const CART_QUERY = /* GraphQL */ `
+  ${CART_FIELDS}
+  query GetCart($id: ID!) {
+    cart(id: $id) { ...CartFields }
+  }
+`;
+
+const CART_LINES_REMOVE_MUTATION = /* GraphQL */ `
+  ${CART_FIELDS}
+  mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+      cart { ...CartFields }
+      userErrors { field message }
+    }
+  }
+`;
+
+type StorefrontCartLine = {
+  id: string;
+  quantity: number;
+  sellingPlanAllocation?: {
+    sellingPlan: { id: string; name: string };
+    priceAdjustments: Array<{ price: { amount: string; currencyCode: string } }>;
+  } | null;
+  merchandise: {
+    id: string;
+    title: string;
+    price: { amount: string; currencyCode: string };
+    product: {
+      title: string;
+      handle: string;
+      featuredImage: { url: string; altText: string | null } | null;
+    };
+  };
+};
+
+type StorefrontCart = {
+  id: string;
+  checkoutUrl: string;
+  totalQuantity: number;
+  cost: { totalAmount: { amount: string; currencyCode: string } };
+  lines: { edges: Array<{ node: StorefrontCartLine }> };
+};
+
+function mapStorefrontCart(cart: StorefrontCart): ShopifyCart {
   return {
-    id: `gid://shopify/DraftOrder/${order.id}`,
-    checkoutUrl: rewriteInvoiceUrl(order.invoice_url),
-    totalQuantity: order.line_items.reduce((sum, li) => sum + li.quantity, 0),
-    cost: {
-      totalAmount: {
-        amount: order.total_price,
-        currencyCode: order.currency,
-      },
-    },
+    id: cart.id,
+    checkoutUrl: cart.checkoutUrl,
+    totalQuantity: cart.totalQuantity,
+    cost: cart.cost,
     lines: {
-      edges: order.line_items.map((li) => ({
+      edges: cart.lines.edges.map(({ node }) => ({
         node: {
-          id: String(li.id),
-          quantity: li.quantity,
+          id: node.id,
+          quantity: node.quantity,
+          sellingPlanAllocation: node.sellingPlanAllocation ?? null,
           merchandise: {
-            id: li.variant_id ? `gid://shopify/ProductVariant/${li.variant_id}` : '',
-            title: li.variant_title ?? 'Default Title',
-            product: {
-              title: li.title,
-              handle: '',
-              featuredImage:
-                (li.product_id ? (imageMap.get(li.product_id) ?? null) : null),
-
-            },
-            price: { amount: li.price, currencyCode: order.currency },
+            id: node.merchandise.id,
+            title: node.merchandise.title,
+            product: node.merchandise.product,
+            price: node.merchandise.price,
           },
         },
       })),
     },
   };
+}
+
+function throwUserErrors(userErrors: Array<{ field: string[] | null; message: string }> | undefined) {
+  if (userErrors && userErrors.length > 0) {
+    throw new Error(`Storefront cart error: ${userErrors.map((e) => e.message).join(', ')}`);
+  }
 }
 
 export type ShopifyImage = { url: string; altText: string | null };
@@ -255,6 +332,10 @@ export type ShopifyVariant = {
 export type ShopifyCartLine = {
   id: string;
   quantity: number;
+  sellingPlanAllocation?: {
+    sellingPlan: { id: string; name: string };
+    priceAdjustments: Array<{ price: { amount: string; currencyCode: string } }>;
+  } | null;
   merchandise: {
     id: string;
     title: string;
@@ -301,23 +382,22 @@ export const createCart = createServerFn({ method: 'POST' })
     if (!Array.isArray(lines) || lines.length === 0) {
       throw new Error('lines is required');
     }
-    return { lines: lines as Array<{ merchandiseId: string; quantity: number }> };
+    return {
+      lines: lines as Array<{ merchandiseId: string; quantity: number; sellingPlanId?: string }>,
+    };
   })
   .handler(async (ctx) => {
-    const lineItems = ctx.data.lines.map((line) => ({
-      variant_id: extractNumericId(line.merchandiseId),
+    const cartLines = ctx.data.lines.map((line) => ({
+      merchandiseId: line.merchandiseId,
       quantity: line.quantity,
+      ...(line.sellingPlanId ? { sellingPlanId: line.sellingPlanId } : {}),
     }));
-    const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
-      'draft_orders.json',
-      'POST',
-      { draft_order: { line_items: lineItems } },
-    );
-    const productIds = data.draft_order.line_items
-      .map((li) => li.product_id)
-      .filter((id): id is number => id !== null);
-    const imageMap = await fetchProductImageMap(productIds);
-    return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
+    const result = await storefrontRequest<{
+      cartCreate: { cart: StorefrontCart | null; userErrors: Array<{ field: string[] | null; message: string }> };
+    }>(CART_CREATE_MUTATION, { input: { lines: cartLines } });
+    throwUserErrors(result.cartCreate.userErrors);
+    if (!result.cartCreate.cart) throw new Error('cartCreate returned no cart');
+    return mapStorefrontCart(result.cartCreate.cart);
   });
 
 export const addCartLines = createServerFn({ method: 'POST' })
@@ -333,29 +413,21 @@ export const addCartLines = createServerFn({ method: 'POST' })
     }
     return {
       cartId,
-      lines: lines as Array<{ merchandiseId: string; quantity: number }>,
+      lines: lines as Array<{ merchandiseId: string; quantity: number; sellingPlanId?: string }>,
     };
   })
   .handler(async (ctx) => {
-    const orderId = extractNumericId(ctx.data.cartId);
-    const current = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
-      `draft_orders/${orderId}.json`,
-    );
-    const existingLines = current.draft_order.line_items.map((li) => ({ id: li.id }));
-    const newLines = ctx.data.lines.map((line) => ({
-      variant_id: extractNumericId(line.merchandiseId),
+    const cartLines = ctx.data.lines.map((line) => ({
+      merchandiseId: line.merchandiseId,
       quantity: line.quantity,
+      ...(line.sellingPlanId ? { sellingPlanId: line.sellingPlanId } : {}),
     }));
-    const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
-      `draft_orders/${orderId}.json`,
-      'PUT',
-      { draft_order: { line_items: [...existingLines, ...newLines] } },
-    );
-    const productIds = data.draft_order.line_items
-      .map((li) => li.product_id)
-      .filter((id): id is number => id !== null);
-    const imageMap = await fetchProductImageMap(productIds);
-    return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
+    const result = await storefrontRequest<{
+      cartLinesAdd: { cart: StorefrontCart | null; userErrors: Array<{ field: string[] | null; message: string }> };
+    }>(CART_LINES_ADD_MUTATION, { cartId: ctx.data.cartId, lines: cartLines });
+    throwUserErrors(result.cartLinesAdd.userErrors);
+    if (!result.cartLinesAdd.cart) throw new Error('cartLinesAdd returned no cart');
+    return mapStorefrontCart(result.cartLinesAdd.cart);
   });
 
 export const getCart = createServerFn({ method: 'POST' })
@@ -368,22 +440,11 @@ export const getCart = createServerFn({ method: 'POST' })
     return { cartId };
   })
   .handler(async (ctx) => {
-    const orderId = extractNumericId(ctx.data.cartId);
-    try {
-      const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
-        `draft_orders/${orderId}.json`,
-      );
-      const productIds = data.draft_order.line_items
-        .map((li) => li.product_id)
-        .filter((id): id is number => id !== null);
-      const imageMap = await fetchProductImageMap(productIds);
-      return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
-    } catch (error) {
-      if (error instanceof Error && /\b404\b/.test(error.message)) {
-        return null;
-      }
-      throw error;
-    }
+    const result = await storefrontRequest<{ cart: StorefrontCart | null }>(CART_QUERY, {
+      id: ctx.data.cartId,
+    });
+    if (!result.cart) return null;
+    return mapStorefrontCart(result.cart);
   });
 
 export const removeCartLines = createServerFn({ method: 'POST' })
@@ -400,34 +461,12 @@ export const removeCartLines = createServerFn({ method: 'POST' })
     return { cartId, lineIds: lineIds as string[] };
   })
   .handler(async (ctx) => {
-    const orderId = extractNumericId(ctx.data.cartId);
-    const lineIdsToRemove = new Set(ctx.data.lineIds.map(Number));
-    const current = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
-      `draft_orders/${orderId}.json`,
-    );
-    const remaining = current.draft_order.line_items.filter(
-      (li) => !lineIdsToRemove.has(li.id),
-    );
-    if (remaining.length === 0) {
-      await shopifyAdminRest(`draft_orders/${orderId}.json`, 'DELETE');
-      return {
-        id: current.draft_order.id.toString(),
-        checkoutUrl: '',
-        totalQuantity: 0,
-        cost: { totalAmount: { amount: '0.00', currencyCode: current.draft_order.currency } },
-        lines: { edges: [] as ShopifyCart['lines']['edges'] },
-      } satisfies ShopifyCart;
-    }
-    const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
-      `draft_orders/${orderId}.json`,
-      'PUT',
-      { draft_order: { line_items: remaining.map((li) => ({ id: li.id })) } },
-    );
-    const productIds = data.draft_order.line_items
-      .map((li) => li.product_id)
-      .filter((id): id is number => id !== null);
-    const imageMap = await fetchProductImageMap(productIds);
-    return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
+    const result = await storefrontRequest<{
+      cartLinesRemove: { cart: StorefrontCart | null; userErrors: Array<{ field: string[] | null; message: string }> };
+    }>(CART_LINES_REMOVE_MUTATION, { cartId: ctx.data.cartId, lineIds: ctx.data.lineIds });
+    throwUserErrors(result.cartLinesRemove.userErrors);
+    if (!result.cartLinesRemove.cart) throw new Error('cartLinesRemove returned no cart');
+    return mapStorefrontCart(result.cartLinesRemove.cart);
   });
 
 export const getProducts = createServerFn({ method: 'GET' }).handler(async () => {

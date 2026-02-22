@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@mdx-js/react": "^3.1.1",
+    "@shopify/storefront-api-client": "^1.0.9",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "^0.7.0",

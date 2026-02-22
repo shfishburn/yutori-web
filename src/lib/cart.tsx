@@ -17,7 +17,7 @@ import {
 
 const CART_ID_KEY = 'yutori_cart_id';
 const STALE_CART_ERROR_PATTERN =
-  /cart.*not found|invalid.*cart|invalid id|does not exist|has already been checked out|Shopify Admin 404/i;
+  /cart.*not found|invalid.*cart|invalid id|does not exist|has already been checked out/i;
 
 type CartContextValue = {
   cart: ShopifyCart | null;
