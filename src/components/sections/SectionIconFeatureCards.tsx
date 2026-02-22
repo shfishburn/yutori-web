@@ -7,6 +7,7 @@ type Props = {
   description?: string;
   cards: IconFeatureCard[];
   columns?: 2 | 3;
+  accentColor?: 'heat' | 'accent';
 };
 
 export function SectionIconFeatureCards({
@@ -16,7 +17,11 @@ export function SectionIconFeatureCards({
   description,
   cards,
   columns = 3,
+  accentColor = 'heat',
 }: Props) {
+  const hlBorder = accentColor === 'heat' ? 'border-heat-dim/40' : 'border-accent-dim/40';
+  const hlBg = accentColor === 'heat' ? 'bg-heat-subtle' : 'bg-accent-subtle';
+  const hlText = accentColor === 'heat' ? 'text-heat' : 'text-accent';
   const gridCols =
     columns === 2
       ? 'sm:grid-cols-2'
@@ -43,12 +48,12 @@ export function SectionIconFeatureCards({
             key={c.title}
             className={`rounded-2xl border p-7 ${
               c.highlight
-                ? 'border-heat-dim/40 bg-heat-subtle'
+                ? `${hlBorder} ${hlBg}`
                 : 'border-edge bg-surface'
             }`}
           >
             <div className="text-2xl" role="img" aria-label={c.iconLabel}>{c.icon}</div>
-            <h3 className={`mt-4 font-bold ${c.highlight ? 'text-heat' : 'text-fg'}`}>
+            <h3 className={`mt-4 font-bold ${c.highlight ? hlText : 'text-fg'}`}>
               {c.title}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">{c.body}</p>

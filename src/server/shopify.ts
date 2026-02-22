@@ -1,8 +1,8 @@
 import { createServerFn } from '@tanstack/react-start';
 
-type ShopifyEnv = {
+type ShopifyAdminEnv = {
   storeDomain: string;
-  storefrontToken: string;
+  adminToken: string;
   apiVersion: string;
 };
 
@@ -37,65 +37,85 @@ function normalizeStoreDomain(value: string | undefined): string | undefined {
   return cleaned.replace(/^https?:\/\//i, '').replace(/\/+$/g, '');
 }
 
-function getShopifyEnv(): ShopifyEnv {
+function getShopifyAdminEnv(): ShopifyAdminEnv {
   const storeDomain = normalizeStoreDomain(process.env.SHOPIFY_STORE_DOMAIN);
-  const storefrontToken = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN);
-  const apiVersion = cleanEnvValue(process.env.SHOPIFY_STOREFRONT_API_VERSION) ?? '2024-10';
+  const adminToken = cleanEnvValue(process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN);
+  const apiVersion = cleanEnvValue(process.env.SHOPIFY_ADMIN_API_VERSION) ?? '2025-01';
 
   const missingEnvVars: string[] = [];
   if (!storeDomain) {
     missingEnvVars.push('SHOPIFY_STORE_DOMAIN');
   }
-  if (!storefrontToken) {
-    missingEnvVars.push('SHOPIFY_STOREFRONT_ACCESS_TOKEN');
+  if (!adminToken) {
+    missingEnvVars.push('SHOPIFY_ADMIN_API_ACCESS_TOKEN');
   }
 
-  if (missingEnvVars.length > 0 || !storeDomain || !storefrontToken) {
+  if (missingEnvVars.length > 0 || !storeDomain || !adminToken) {
     throw new Error(`Missing Shopify env vars: ${missingEnvVars.join(', ')}`);
   }
 
-  return { storeDomain, storefrontToken, apiVersion };
+  return { storeDomain, adminToken, apiVersion };
 }
 
-async function shopifyGraphql<T>(
-  query: string,
-  variables: Record<string, unknown> = {},
-): Promise<T> {
-  const { storeDomain, storefrontToken, apiVersion } = getShopifyEnv();
+type AdminRestError = {
+  errors?: unknown;
+};
 
-  const url = `https://${storeDomain}/api/${apiVersion}/graphql.json`;
+async function shopifyAdminRest<T>(
+  path: string,
+  init: Omit<RequestInit, 'headers'> & { headers?: Record<string, string> } = {},
+): Promise<T> {
+  const { storeDomain, adminToken, apiVersion } = getShopifyAdminEnv();
+  const url = `https://${storeDomain}/admin/api/${apiVersion}/${path.replace(/^\/+/, '')}`;
 
   const res = await fetch(url, {
-    method: 'POST',
+    ...init,
     headers: {
       'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': storefrontToken,
+      'X-Shopify-Access-Token': adminToken,
+      ...(init.headers ?? {}),
     },
-    body: JSON.stringify({ query, variables }),
   });
 
   const json: unknown = await res.json().catch(() => null);
-  const jsonObj =
-    json && typeof json === 'object' ? (json as Record<string, unknown>) : null;
 
   if (!res.ok) {
-    throw new Error(
-      `Shopify request failed (${res.status}): ${JSON.stringify(jsonObj)?.slice(0, 500)}`,
-    );
+    const msg = JSON.stringify(json)?.slice(0, 500);
+    throw new Error(`Shopify admin request failed (${res.status}): ${msg}`);
   }
 
-  const errors = jsonObj?.errors;
-  if (Array.isArray(errors) && errors.length > 0) {
-    throw new Error(
-      `Shopify GraphQL errors: ${JSON.stringify(errors).slice(0, 500)}`,
-    );
+  // Some Admin REST errors still return 200 with an {errors: ...} shape.
+  const maybeErr = json as AdminRestError | null;
+  if (maybeErr && typeof maybeErr === 'object' && 'errors' in maybeErr && maybeErr.errors) {
+    throw new Error(`Shopify admin errors: ${JSON.stringify(maybeErr.errors).slice(0, 500)}`);
   }
 
-  const data = jsonObj?.data;
-  if (!data) {
-    throw new Error('Shopify response missing data');
+  return json as T;
+}
+
+const gidFor = (type: 'Product' | 'ProductVariant', id: number): string =>
+  `gid://shopify/${type}/${id}`;
+
+const parseVariantNumericId = (gid: string): number | null => {
+  const m = String(gid).match(/ProductVariant\/(\d+)$/);
+  if (!m) return null;
+  const n = parseInt(m[1] ?? '', 10);
+  return Number.isFinite(n) ? n : null;
+};
+
+let _cachedCurrency: { code: string; at: number } | null = null;
+async function getShopCurrencyCode(): Promise<string> {
+  const now = Date.now();
+  if (_cachedCurrency && now - _cachedCurrency.at < 10 * 60_000) {
+    return _cachedCurrency.code;
   }
-  return data as T;
+
+  const data = await shopifyAdminRest<{ shop: { currency: string } }>('shop.json', {
+    method: 'GET',
+  });
+  const code = data?.shop?.currency || 'USD';
+  _cachedCurrency = { code, at: now };
+  return code;
 }
 
 export type ShopifyImage = { url: string; altText: string | null };
@@ -117,213 +137,83 @@ export type ShopifyVariant = {
   price: { amount: string; currencyCode: string };
 };
 
-export type ShopifyCartLine = {
-  id: string;
-  quantity: number;
-  merchandise: {
-    id: string;
-    title: string;
-    product: { title: string; handle: string; featuredImage: { url: string; altText: string | null } | null };
-    price: { amount: string; currencyCode: string };
+type AdminRestImage = {
+  src: string;
+  alt?: string | null;
+};
+
+type AdminRestVariant = {
+  id: number;
+  title: string;
+  price: string;
+  inventory_quantity?: number;
+};
+
+type AdminRestProduct = {
+  id: number;
+  handle: string;
+  title: string;
+  body_html?: string;
+  image?: AdminRestImage | null;
+  images?: AdminRestImage[];
+  variants?: AdminRestVariant[];
+};
+
+function mapAdminProductToShopify(
+  product: AdminRestProduct,
+  currencyCode: string,
+): ShopifyProduct {
+  const images = Array.isArray(product.images) ? product.images : [];
+  const featured = product.image?.src
+    ? { url: product.image.src, altText: product.image.alt ?? null }
+    : images[0]?.src
+      ? { url: images[0].src, altText: images[0].alt ?? null }
+      : null;
+
+  const variants = Array.isArray(product.variants) ? product.variants : [];
+  const minPrice = (() => {
+    const prices = variants
+      .map((v) => parseFloat(v.price))
+      .filter((n) => Number.isFinite(n));
+    if (prices.length === 0) return '0';
+    return String(Math.min(...prices));
+  })();
+
+  return {
+    id: gidFor('Product', product.id),
+    handle: product.handle,
+    title: product.title,
+    description: String(product.body_html ?? '').replace(/<[^>]*>/g, '').trim(),
+    featuredImage: featured,
+    images: {
+      edges: images.slice(0, 20).map((img) => ({
+        node: { url: img.src, altText: img.alt ?? null },
+      })),
+    },
+    priceRange: {
+      minVariantPrice: {
+        amount: minPrice,
+        currencyCode,
+      },
+    },
   };
-};
-
-export type ShopifyCart = {
-  id: string;
-  checkoutUrl: string;
-  totalQuantity: number;
-  cost: { totalAmount: { amount: string; currencyCode: string } };
-  lines: { edges: { node: ShopifyCartLine }[] };
-};
-
-const PRODUCTS_QUERY = `#graphql
-query Products($first: Int!) {
-  products(first: $first) {
-    edges {
-      node {
-        id
-        handle
-        title
-        description
-        featuredImage {
-          url
-          altText
-        }
-        images(first: 20) {
-          edges { node { url altText } }
-        }
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-        }
-      }
-    }
-  }
 }
-`;
 
-const PRODUCT_BY_HANDLE_QUERY = `#graphql
-query ProductByHandle($handle: String!) {
-  productByHandle(handle: $handle) {
-    id
-    handle
-    title
-    description
-    featuredImage {
-      url
-      altText
-    }
-    images(first: 20) {
-      edges { node { url altText } }
-    }
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-  }
+function mapAdminVariantToShopify(
+  variant: AdminRestVariant,
+  currencyCode: string,
+): ShopifyVariant {
+  const inv = typeof variant.inventory_quantity === 'number' ? variant.inventory_quantity : null;
+  return {
+    id: gidFor('ProductVariant', variant.id),
+    title: variant.title,
+    availableForSale: inv == null ? true : inv > 0,
+    price: {
+      amount: String(variant.price),
+      currencyCode,
+    },
+  };
 }
-`;
-
-const PRODUCT_VARIANTS_QUERY = `#graphql
-query ProductVariants($handle: String!) {
-  productByHandle(handle: $handle) {
-    variants(first: 20) {
-      edges {
-        node {
-          id
-          title
-          availableForSale
-          price {
-            amount
-            currencyCode
-          }
-        }
-      }
-    }
-  }
-}
-`;
-
-const CART_CREATE_MUTATION = `#graphql
-mutation CartCreate($lines: [CartLineInput!]!) {
-  cartCreate(input: { lines: $lines }) {
-    cart {
-      id
-      checkoutUrl
-      totalQuantity
-      cost { totalAmount { amount currencyCode } }
-      lines(first: 20) {
-        edges {
-          node {
-            id
-            quantity
-            merchandise {
-              ... on ProductVariant {
-                id
-                title
-                product { title handle featuredImage { url altText } }
-                price { amount currencyCode }
-              }
-            }
-          }
-        }
-      }
-    }
-    userErrors { field message }
-  }
-}
-`;
-
-const CART_LINES_ADD_MUTATION = `#graphql
-mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
-  cartLinesAdd(cartId: $cartId, lines: $lines) {
-    cart {
-      id
-      checkoutUrl
-      totalQuantity
-      cost { totalAmount { amount currencyCode } }
-      lines(first: 20) {
-        edges {
-          node {
-            id
-            quantity
-            merchandise {
-              ... on ProductVariant {
-                id
-                title
-                product { title handle featuredImage { url altText } }
-                price { amount currencyCode }
-              }
-            }
-          }
-        }
-      }
-    }
-    userErrors { field message }
-  }
-}
-`;
-
-const CART_QUERY = `#graphql
-query Cart($cartId: ID!) {
-  cart(id: $cartId) {
-    id
-    checkoutUrl
-    totalQuantity
-    cost { totalAmount { amount currencyCode } }
-    lines(first: 20) {
-      edges {
-        node {
-          id
-          quantity
-          merchandise {
-            ... on ProductVariant {
-              id
-              title
-              product { title handle featuredImage { url altText } }
-              price { amount currencyCode }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-`;
-
-const CART_LINES_REMOVE_MUTATION = `#graphql
-mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
-  cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-    cart {
-      id
-      checkoutUrl
-      totalQuantity
-      cost { totalAmount { amount currencyCode } }
-      lines(first: 20) {
-        edges {
-          node {
-            id
-            quantity
-            merchandise {
-              ... on ProductVariant {
-                id
-                title
-                product { title handle featuredImage { url altText } }
-                price { amount currencyCode }
-              }
-            }
-          }
-        }
-      }
-    }
-    userErrors { field message }
-  }
-}
-`;
 
 export const getProductVariants = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => {
@@ -335,93 +225,71 @@ export const getProductVariants = createServerFn({ method: 'POST' })
     return { handle };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      productByHandle: { variants: { edges: { node: ShopifyVariant }[] } } | null;
-    }>(PRODUCT_VARIANTS_QUERY, { handle: ctx.data.handle });
-
-    return data.productByHandle?.variants.edges.map((e) => e.node) ?? [];
+    const currency = await getShopCurrencyCode();
+    const products = await shopifyAdminRest<{ products: AdminRestProduct[] }>(
+      'products.json?limit=250',
+      { method: 'GET' },
+    );
+    const p = (products.products ?? []).find((x) => x.handle === ctx.data.handle) ?? null;
+    const variants = Array.isArray(p?.variants) ? p!.variants! : [];
+    return variants.slice(0, 20).map((v) => mapAdminVariantToShopify(v, currency));
   });
 
-export const createCart = createServerFn({ method: 'POST' })
+export const createDraftOrder = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => {
     const obj = input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
-    const lines = obj?.lines;
-    if (!Array.isArray(lines) || lines.length === 0) {
-      throw new Error('lines is required');
+    const variantId = obj?.variantId;
+    const quantity = obj?.quantity;
+    if (typeof variantId !== 'string' || variantId.trim().length === 0) {
+      throw new Error('variantId is required');
     }
-    return { lines: lines as Array<{ merchandiseId: string; quantity: number }> };
+    const q = typeof quantity === 'number' && Number.isFinite(quantity) && quantity > 0
+      ? Math.floor(quantity)
+      : 1;
+    return { variantId, quantity: q };
   })
   .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      cartCreate: { cart: ShopifyCart; userErrors: { field: string; message: string }[] };
-    }>(CART_CREATE_MUTATION, { lines: ctx.data.lines });
-
-    if (data.cartCreate.userErrors.length > 0) {
-      throw new Error(data.cartCreate.userErrors.map((e) => e.message).join(', '));
+    const numericVariantId = parseVariantNumericId(ctx.data.variantId);
+    if (!numericVariantId) {
+      throw new Error('variantId must be a Shopify ProductVariant gid');
     }
-    return data.cartCreate.cart;
-  });
 
-export const addCartLines = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => {
-    const obj = input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
-    const cartId = obj?.cartId;
-    const lines = obj?.lines;
-    if (typeof cartId !== 'string') throw new Error('cartId is required');
-    if (!Array.isArray(lines) || lines.length === 0) throw new Error('lines is required');
-    return { cartId, lines: lines as Array<{ merchandiseId: string; quantity: number }> };
-  })
-  .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      cartLinesAdd: { cart: ShopifyCart; userErrors: { field: string; message: string }[] };
-    }>(CART_LINES_ADD_MUTATION, { cartId: ctx.data.cartId, lines: ctx.data.lines });
+    const payload = {
+      draft_order: {
+        line_items: [
+          {
+            variant_id: numericVariantId,
+            quantity: ctx.data.quantity,
+          },
+        ],
+        note: 'Yutori web checkout',
+        tags: 'yutori_web',
+      },
+    };
 
-    if (data.cartLinesAdd.userErrors.length > 0) {
-      throw new Error(data.cartLinesAdd.userErrors.map((e) => e.message).join(', '));
+    const data = await shopifyAdminRest<{ draft_order: { invoice_url: string | null } }>(
+      'draft_orders.json',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const url = data?.draft_order?.invoice_url;
+    if (!url) {
+      throw new Error('Draft order created but invoice_url was missing');
     }
-    return data.cartLinesAdd.cart;
-  });
 
-export const getCart = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => {
-    const obj = input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
-    const cartId = obj?.cartId;
-    if (typeof cartId !== 'string') throw new Error('cartId is required');
-    return { cartId };
-  })
-  .handler(async (ctx) => {
-    const data = await shopifyGraphql<{ cart: ShopifyCart | null }>(CART_QUERY, {
-      cartId: ctx.data.cartId,
-    });
-    return data.cart;
-  });
-
-export const removeCartLines = createServerFn({ method: 'POST' })
-  .inputValidator((input: unknown) => {
-    const obj = input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
-    const cartId = obj?.cartId;
-    const lineIds = obj?.lineIds;
-    if (typeof cartId !== 'string') throw new Error('cartId is required');
-    if (!Array.isArray(lineIds) || lineIds.length === 0) throw new Error('lineIds is required');
-    return { cartId, lineIds: lineIds as string[] };
-  })
-  .handler(async (ctx) => {
-    const data = await shopifyGraphql<{
-      cartLinesRemove: { cart: ShopifyCart; userErrors: { field: string; message: string }[] };
-    }>(CART_LINES_REMOVE_MUTATION, { cartId: ctx.data.cartId, lineIds: ctx.data.lineIds });
-
-    if (data.cartLinesRemove.userErrors.length > 0) {
-      throw new Error(data.cartLinesRemove.userErrors.map((e) => e.message).join(', '));
-    }
-    return data.cartLinesRemove.cart;
+    return { invoiceUrl: url };
   });
 
 export const getProducts = createServerFn({ method: 'GET' }).handler(async () => {
-  const data = await shopifyGraphql<{
-    products: { edges: { node: ShopifyProduct }[] }
-  }>(PRODUCTS_QUERY, { first: 12 });
-
-  return data.products.edges.map((e) => e.node);
+  const currency = await getShopCurrencyCode();
+  const data = await shopifyAdminRest<{ products: AdminRestProduct[] }>(
+    'products.json?limit=12',
+    { method: 'GET' },
+  );
+  return (data.products ?? []).map((p) => mapAdminProductToShopify(p, currency));
 });
 
 export const getProductByHandle = createServerFn({ method: 'POST' })
@@ -437,12 +305,11 @@ export const getProductByHandle = createServerFn({ method: 'POST' })
     return { handle };
   })
   .handler(async (ctx) => {
-    const handle = ctx.data.handle;
-
-    const data = await shopifyGraphql<{ productByHandle: ShopifyProduct | null }>(
-      PRODUCT_BY_HANDLE_QUERY,
-      { handle },
+    const currency = await getShopCurrencyCode();
+    const products = await shopifyAdminRest<{ products: AdminRestProduct[] }>(
+      'products.json?limit=250',
+      { method: 'GET' },
     );
-
-    return data.productByHandle;
+    const p = (products.products ?? []).find((x) => x.handle === ctx.data.handle) ?? null;
+    return p ? mapAdminProductToShopify(p, currency) : null;
   });

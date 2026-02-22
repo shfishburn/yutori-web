@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useCart } from '../lib/cart';
 import { selectCheckoutVariant } from '../lib/shopifyVariants';
 import { ProductGallery } from '../components/ProductGallery';
@@ -86,7 +86,6 @@ function ProductError() {
 
 function ProductPage() {
   const { product, variants } = Route.useLoaderData();
-  const navigate = useNavigate();
   const { addItem, loading: cartLoading } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
   const checkoutVariant = selectCheckoutVariant(variants, { preferDepositTitle: true });
@@ -95,8 +94,8 @@ function ProductPage() {
     if (!checkoutVariant) return;
     setCartError(null);
     try {
-      await addItem(checkoutVariant.id);
-      await navigate({ to: '/cart' });
+        const invoiceUrl = await addItem(checkoutVariant.id);
+        window.location.assign(invoiceUrl);
     } catch {
       setCartError(DETAIL_CTA.errorMessage);
     }

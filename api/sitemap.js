@@ -27,39 +27,71 @@ function getBaseUrl(req) {
   return `${proto}://${host}`;
 }
 
-function getShopifyEnv() {
-  const storeDomain = process.env.SHOPIFY_STORE_DOMAIN;
-  const storefrontToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
-  const apiVersion = process.env.SHOPIFY_STOREFRONT_API_VERSION ?? '2024-10';
+const QUOTED_VALUE_PATTERN = /^(['"])(.*)\1$/;
 
-  if (!storeDomain || !storefrontToken) {
+function cleanEnvValue(value) {
+  if (typeof value !== 'string') {
     return null;
   }
 
-  return { storeDomain, storefrontToken, apiVersion };
+  const withoutNewlines = value.replace(/\r?\n/g, '').replace(/\\n/g, '');
+  const trimmed = withoutNewlines.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const quotedMatch = trimmed.match(QUOTED_VALUE_PATTERN);
+  if (quotedMatch) {
+    const unwrapped = (quotedMatch[2] || '').trim();
+    return unwrapped.length > 0 ? unwrapped : null;
+  }
+
+  return trimmed;
 }
 
-async function shopifyGraphql(query, variables = {}) {
+function normalizeStoreDomain(value) {
+  const cleaned = cleanEnvValue(value);
+  if (!cleaned) {
+    return null;
+  }
+
+  return cleaned.replace(/^https?:\/\//i, '').replace(/\/+$/g, '');
+}
+
+function getShopifyEnv() {
+  const storeDomain = normalizeStoreDomain(process.env.SHOPIFY_STORE_DOMAIN);
+  const adminToken = cleanEnvValue(process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN);
+  const apiVersion = cleanEnvValue(process.env.SHOPIFY_ADMIN_API_VERSION) ?? '2025-01';
+
+  if (!storeDomain || !adminToken) {
+    return null;
+  }
+
+  return { storeDomain, adminToken, apiVersion };
+}
+
+async function shopifyAdminRest(path, searchParams = {}) {
   const env = getShopifyEnv();
   if (!env) {
     return null;
   }
 
-  const response = await fetch(
-    `https://${env.storeDomain}/api/${env.apiVersion}/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': env.storefrontToken,
-      },
-      body: JSON.stringify({ query, variables }),
+  const url = new URL(`https://${env.storeDomain}/admin/api/${env.apiVersion}/${path.replace(/^\/+/, '')}`);
+  for (const [key, value] of Object.entries(searchParams || {})) {
+    if (value === undefined || value === null) continue;
+    url.searchParams.set(key, String(value));
+  }
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': env.adminToken,
     },
-  );
+  });
 
   const json = await response.json().catch(() => null);
-  const jsonObj =
-    json && typeof json === 'object' ? json : null;
+  const jsonObj = json && typeof json === 'object' ? json : null;
 
   if (!response.ok) {
     throw new Error(
@@ -67,32 +99,8 @@ async function shopifyGraphql(query, variables = {}) {
     );
   }
 
-  if (Array.isArray(jsonObj?.errors) && jsonObj.errors.length > 0) {
-    throw new Error(
-      `Shopify GraphQL errors: ${JSON.stringify(jsonObj.errors).slice(0, 500)}`,
-    );
-  }
-
-  return jsonObj?.data ?? null;
+  return jsonObj;
 }
-
-const PRODUCT_SITEMAP_QUERY = `#graphql
-query ProductSitemap($first: Int!, $after: String) {
-  products(first: $first, after: $after) {
-    edges {
-      cursor
-      node {
-        handle
-        updatedAt
-      }
-    }
-    pageInfo {
-      hasNextPage
-      endCursor
-    }
-  }
-}
-`;
 
 async function getProductEntries() {
   const env = getShopifyEnv();
@@ -100,34 +108,41 @@ async function getProductEntries() {
     return [];
   }
 
-  const first = 100;
-  let after = null;
+  const limit = 250;
+  let sinceId = 0;
   const products = [];
 
   for (let i = 0; i < 20; i += 1) {
-    const data = await shopifyGraphql(PRODUCT_SITEMAP_QUERY, { first, after });
-    if (!data?.products?.edges || !data.products.pageInfo) {
+    const data = await shopifyAdminRest('products.json', {
+      limit,
+      since_id: sinceId,
+      status: 'active',
+      fields: 'id,handle,updated_at',
+    });
+
+    const batch = Array.isArray(data?.products) ? data.products : null;
+    if (!batch) {
       break;
     }
 
-    for (const edge of data.products.edges) {
-      const handle = edge?.node?.handle;
+    for (const product of batch) {
+      const handle = product?.handle;
       if (typeof handle === 'string' && handle.length > 0) {
         products.push({
           handle,
           updatedAt:
-            typeof edge?.node?.updatedAt === 'string' ? edge.node.updatedAt : null,
+            typeof product?.updated_at === 'string' ? product.updated_at : null,
         });
       }
     }
 
-    if (!data.products.pageInfo.hasNextPage) {
+    if (batch.length < limit) {
       break;
     }
-    after = data.products.pageInfo.endCursor;
-    if (!after) {
-      break;
-    }
+
+    const lastId = batch[batch.length - 1]?.id;
+    if (typeof lastId !== 'number' || !Number.isFinite(lastId) || lastId <= sinceId) break;
+    sinceId = lastId;
   }
 
   return products;

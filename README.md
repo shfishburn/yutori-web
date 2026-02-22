@@ -11,13 +11,15 @@ npm run dev
 
 ## Shopify (Headless)
 
-This site pulls product data from Shopify via the Storefront API using server functions.
+This site pulls product data from Shopify via the Admin API (server-only token) using server functions.
+
+Checkout is implemented via Admin Draft Orders: when a user clicks “Add to cart”, the app creates a draft order and redirects them to the hosted invoice checkout URL.
 
 Set these environment variables (Vercel Project Settings → Environment Variables):
 
 - `SHOPIFY_STORE_DOMAIN` (e.g. `your-store.myshopify.com`)
-- `SHOPIFY_STOREFRONT_ACCESS_TOKEN`
-- `SHOPIFY_STOREFRONT_API_VERSION` (optional, default `2024-10`)
+- `SHOPIFY_ADMIN_API_ACCESS_TOKEN` (Admin API token, typically starts with `shpat_`)
+- `SHOPIFY_ADMIN_API_VERSION` (optional, default `2025-01`)
 
 Routes:
 - `/products` lists products
@@ -29,8 +31,6 @@ Routes:
 2) Set Build Command: `npm run build`
 3) Set Install Command: `npm install`
 4) Add the Shopify env vars above.
-
-Note: Checkout wiring (cart + redirect to Shopify checkout) is the next step.
 
 # Building For Production
 
