@@ -9,6 +9,8 @@ import {
   SEO,
   HERO,
   PILLARS,
+  PRODUCTS_SECTION,
+  PRODUCTS,
   APP_SECTION,
   PHONE_MOCKUP,
   BENEFITS_SECTION,
@@ -74,10 +76,10 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Three pillars */}
+      {/* Pillars */}
       <section className="border-y border-edge bg-surface">
         <div className="mx-auto max-w-6xl px-6 py-16">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
             {PILLARS.map((p) => (
               <div key={p.title} className={`rounded-2xl border ${p.ringColor} p-7`}>
                 <div className="text-3xl" role="img" aria-label={p.iconLabel}>{p.icon}</div>
@@ -86,6 +88,34 @@ function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Product lineup */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-fg-subtle">
+            {PRODUCTS_SECTION.label}
+          </p>
+          <h2 className="text-3xl font-extrabold text-fg">{PRODUCTS_SECTION.heading}</h2>
+          <p className="mx-auto mt-3 max-w-xl text-fg-muted">{PRODUCTS_SECTION.description}</p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {PRODUCTS.map((p) => (
+            <Link
+              key={p.href}
+              to={p.href}
+              className="group flex flex-col rounded-2xl border border-edge bg-surface p-7 transition-all hover:border-edge-strong hover:bg-surface-raised"
+            >
+              <div className="text-3xl" role="img" aria-label={p.iconLabel}>{p.icon}</div>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-fg-subtle">{p.subtitle}</p>
+              <h3 className="mt-1 text-xl font-bold text-fg">{p.title}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-fg-muted">{p.description}</p>
+              <span className={`mt-6 text-sm font-semibold ${p.accentClass} transition-opacity group-hover:opacity-80`}>
+                {p.ctaLabel}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 

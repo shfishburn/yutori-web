@@ -36,7 +36,7 @@ export const PILLARS = [
     ringColor: 'border-heat-dim/40 bg-heat-subtle',
     titleColor: 'text-heat',
     title: 'Sauna',
-    body: 'Precision-built heat chambers with embedded sensors that track temperature curves, session duration, and your physiological response.',
+    body: 'Clear-cedar heat chamber with Saunum even-heat distribution, integrated red/NIR light, and embedded sensors.',
   },
   {
     icon: '\ud83e\uddca',
@@ -44,15 +44,68 @@ export const PILLARS = [
     ringColor: 'border-accent-dim/40 bg-accent-subtle',
     titleColor: 'text-accent',
     title: 'Cold Plunge',
-    body: 'Chiller-powered plunge tubs that hold exact temperatures and sync with the app \u2014 so every cold exposure is recorded and repeatable.',
+    body: 'Hand-crafted asnaro cold tub with live water-temperature tracking and a structured timing protocol.',
+  },
+  {
+    icon: '\ud83d\udebf',
+    iconLabel: 'Shower',
+    ringColor: 'border-edge bg-overlay',
+    titleColor: 'text-fg-muted',
+    title: 'Shower',
+    body: 'Cedar outdoor shower with full copper plumbing and an oversized rain head \u2014 the contrast rinse between heat and cold.',
   },
   {
     icon: '\ud83d\udce1',
     iconLabel: 'Satellite antenna',
     ringColor: 'border-edge bg-overlay',
-    titleColor: 'text-fg-muted',
+    titleColor: 'text-fg-subtle',
     title: 'Sensors',
-    body: 'Bluetooth sensors install in minutes and stream ambient temperature, session start/end, and duration directly to the Yutori app.',
+    body: 'Bluetooth sensors install in minutes and stream ambient temperature, session start/end, and duration to the Yutori app.',
+  },
+];
+
+/* ── Product lineup ───────────────────────────────────────── */
+
+export const PRODUCTS_SECTION = {
+  label: 'The full line',
+  heading: 'Build your bathhouse.',
+  description:
+    'Every Pulse product is designed to live together \u2014 matched cedar, matched aesthetics, shared sensors and app.',
+};
+
+export const PRODUCTS = [
+  {
+    title: 'Pulse Sauna',
+    subtitle: 'Backyard sauna',
+    description:
+      'Clear-cedar, Saunum even heat, integrated red/NIR light, emergency alert system.',
+    href: '/sauna',
+    icon: '\ud83d\udd25',
+    iconLabel: 'Fire',
+    accentClass: 'text-heat',
+    ctaLabel: 'See Pulse Sauna \u2192',
+  },
+  {
+    title: 'Pulse Plunge',
+    subtitle: 'Japanese cold tub',
+    description:
+      'Hand-crafted asnaro wood, live water-temperature tracking, no chiller required.',
+    href: '/plunge',
+    icon: '\u2744\ufe0f',
+    iconLabel: 'Snowflake',
+    accentClass: 'text-accent',
+    ctaLabel: 'See Pulse Plunge \u2192',
+  },
+  {
+    title: 'Pulse Shower',
+    subtitle: 'Outdoor shower',
+    description:
+      'Clear-cedar enclosure, full copper plumbing, rain head \u2014 the rinse between your hot and cold.',
+    href: '/shower',
+    icon: '\ud83d\udebf',
+    iconLabel: 'Shower',
+    accentClass: 'text-fg-muted',
+    ctaLabel: 'See Pulse Shower \u2192',
   },
 ];
 
