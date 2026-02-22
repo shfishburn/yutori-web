@@ -177,7 +177,26 @@ function rewriteInvoiceUrl(url: string): string {
   }
 }
 
-function mapDraftOrderToShopifyCart(order: AdminDraftOrder): ShopifyCart {
+async function fetchProductImageMap(
+  productIds: number[],
+): Promise<Map<number, ShopifyImage>> {
+  if (productIds.length === 0) return new Map();
+  const ids = [...new Set(productIds)].join(',');
+  const data = await shopifyAdminRest<{ products: { id: number; images: { src: string; alt: string | null }[] }[] }>(
+    `products.json?ids=${ids}&fields=id,images`,
+  );
+  const map = new Map<number, ShopifyImage>();
+  for (const p of data.products) {
+    const img = p.images[0];
+    if (img) map.set(p.id, { url: img.src, altText: img.alt });
+  }
+  return map;
+}
+
+function mapDraftOrderToShopifyCart(
+  order: AdminDraftOrder,
+  imageMap: Map<number, ShopifyImage> = new Map(),
+): ShopifyCart {
   return {
     id: `gid://shopify/DraftOrder/${order.id}`,
     checkoutUrl: rewriteInvoiceUrl(order.invoice_url),
@@ -199,9 +218,9 @@ function mapDraftOrderToShopifyCart(order: AdminDraftOrder): ShopifyCart {
             product: {
               title: li.title,
               handle: '',
-              featuredImage: li.image
-                ? { url: li.image.src, altText: li.image.alt ?? null }
-                : null,
+              featuredImage:
+                (li.product_id ? (imageMap.get(li.product_id) ?? null) : null),
+
             },
             price: { amount: li.price, currencyCode: order.currency },
           },
@@ -294,7 +313,11 @@ export const createCart = createServerFn({ method: 'POST' })
       'POST',
       { draft_order: { line_items: lineItems } },
     );
-    return mapDraftOrderToShopifyCart(data.draft_order);
+    const productIds = data.draft_order.line_items
+      .map((li) => li.product_id)
+      .filter((id): id is number => id !== null);
+    const imageMap = await fetchProductImageMap(productIds);
+    return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
   });
 
 export const addCartLines = createServerFn({ method: 'POST' })
@@ -328,7 +351,11 @@ export const addCartLines = createServerFn({ method: 'POST' })
       'PUT',
       { draft_order: { line_items: [...existingLines, ...newLines] } },
     );
-    return mapDraftOrderToShopifyCart(data.draft_order);
+    const productIds = data.draft_order.line_items
+      .map((li) => li.product_id)
+      .filter((id): id is number => id !== null);
+    const imageMap = await fetchProductImageMap(productIds);
+    return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
   });
 
 export const getCart = createServerFn({ method: 'POST' })
@@ -346,7 +373,11 @@ export const getCart = createServerFn({ method: 'POST' })
       const data = await shopifyAdminRest<{ draft_order: AdminDraftOrder }>(
         `draft_orders/${orderId}.json`,
       );
-      return mapDraftOrderToShopifyCart(data.draft_order);
+      const productIds = data.draft_order.line_items
+        .map((li) => li.product_id)
+        .filter((id): id is number => id !== null);
+      const imageMap = await fetchProductImageMap(productIds);
+      return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
     } catch (error) {
       if (error instanceof Error && /\b404\b/.test(error.message)) {
         return null;
@@ -392,7 +423,11 @@ export const removeCartLines = createServerFn({ method: 'POST' })
       'PUT',
       { draft_order: { line_items: remaining.map((li) => ({ id: li.id })) } },
     );
-    return mapDraftOrderToShopifyCart(data.draft_order);
+    const productIds = data.draft_order.line_items
+      .map((li) => li.product_id)
+      .filter((id): id is number => id !== null);
+    const imageMap = await fetchProductImageMap(productIds);
+    return mapDraftOrderToShopifyCart(data.draft_order, imageMap);
   });
 
 export const getProducts = createServerFn({ method: 'GET' }).handler(async () => {
