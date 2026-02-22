@@ -93,7 +93,7 @@ export function SessionCard({ s }: { s: SessionSummary }) {
                 </span>
               ) : null}
               {s.safetyWarningCount > 0 ? (
-                <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                <span className="rounded-full border border-warning-border bg-warning-subtle px-2 py-0.5 text-xs font-semibold text-warning">
                   {SESSIONS.safetyBadge}
                 </span>
               ) : null}
