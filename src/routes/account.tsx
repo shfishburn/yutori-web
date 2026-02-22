@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Icon } from '../components/Icon';
 import { SessionCard } from '../components/SessionCard';
@@ -18,6 +18,8 @@ export const Route = createFileRoute('/account')({
     }),
   component: AccountPage,
 });
+
+const SESSION_PAGE_SIZE = 50;
 
 function getFinancialLabel(status: string | null): string {
   switch (status) {
@@ -61,7 +63,10 @@ function AccountPage() {
 
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [loadingMoreSessions, setLoadingMoreSessions] = useState(false);
   const [sessionsError, setSessionsError] = useState<string | null>(null);
+  const [sessionsOffset, setSessionsOffset] = useState(0);
+  const [hasMoreSessions, setHasMoreSessions] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -102,10 +107,22 @@ function AccountPage() {
     let active = true;
     setLoadingSessions(true);
     setSessionsError(null);
+    setSessionsOffset(0);
+    setHasMoreSessions(false);
 
-    getSessionHistory({ data: { accessToken: session.accessToken, limit: 50, offset: 0 } })
+    getSessionHistory({
+      data: {
+        accessToken: session.accessToken,
+        limit: SESSION_PAGE_SIZE,
+        offset: 0,
+      },
+    })
       .then((data) => {
-        if (active) setSessions(data.sessions);
+        if (active) {
+          setSessions(data.sessions);
+          setSessionsOffset(data.sessions.length);
+          setHasMoreSessions(data.sessions.length === SESSION_PAGE_SIZE);
+        }
       })
       .catch((error: unknown) => {
         if (active) setSessionsError(error instanceof Error ? error.message : SESSIONS.error);
@@ -116,6 +133,40 @@ function AccountPage() {
 
     return () => { active = false; };
   }, [session?.accessToken, user]);
+
+  const loadMoreSessions = useCallback(() => {
+    if (!session?.accessToken || !user || loadingMoreSessions || !hasMoreSessions) {
+      return;
+    }
+
+    setLoadingMoreSessions(true);
+    setSessionsError(null);
+
+    getSessionHistory({
+      data: {
+        accessToken: session.accessToken,
+        limit: SESSION_PAGE_SIZE,
+        offset: sessionsOffset,
+      },
+    })
+      .then((data) => {
+        setSessions((prev) => [...prev, ...data.sessions]);
+        setSessionsOffset((prev) => prev + data.sessions.length);
+        setHasMoreSessions(data.sessions.length === SESSION_PAGE_SIZE);
+      })
+      .catch((error: unknown) => {
+        setSessionsError(error instanceof Error ? error.message : SESSIONS.error);
+      })
+      .finally(() => {
+        setLoadingMoreSessions(false);
+      });
+  }, [
+    hasMoreSessions,
+    loadingMoreSessions,
+    session?.accessToken,
+    sessionsOffset,
+    user,
+  ]);
 
   const orders = snapshot?.orders ?? [];
   const customerName = useMemo(() => {
@@ -257,7 +308,7 @@ function AccountPage() {
         </div>
 
         {/* Session history */}
-        <div className="mt-6 rounded-3xl border border-edge bg-surface p-6 sm:p-8">
+        <div id="session-history" className="mt-6 rounded-3xl border border-edge bg-surface p-6 sm:p-8">
           <h2 className="text-xl font-bold text-fg">{SESSIONS.heading}</h2>
           <p className="mt-2 text-sm text-fg-muted">{SESSIONS.description}</p>
 
@@ -282,11 +333,30 @@ function AccountPage() {
           ) : null}
 
           {!loadingSessions && !sessionsError && sessions.length > 0 ? (
-            <div className="mt-6 grid gap-3">
-              {sessions.map((s) => (
-                <SessionCard key={s.id} s={s} />
-              ))}
-            </div>
+            <>
+              <div className="mt-6 grid gap-3">
+                {sessions.map((s) => (
+                  <SessionCard key={s.id} s={s} />
+                ))}
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-fg-subtle">
+                  Showing {sessions.length} sessions
+                </p>
+                {hasMoreSessions ? (
+                  <button
+                    type="button"
+                    onClick={loadMoreSessions}
+                    disabled={loadingMoreSessions}
+                    className="rounded-lg border border-edge px-3 py-1.5 text-sm font-semibold text-fg-muted transition-colors hover:bg-canvas hover:text-fg disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loadingMoreSessions ? 'Loading...' : 'Load more sessions'}
+                  </button>
+                ) : (
+                  <p className="text-xs text-fg-subtle">You have reached the end of your history.</p>
+                )}
+              </div>
+            </>
           ) : null}
         </div>
       </section>

@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon';
 import { SessionCard, formatDuration } from '../components/SessionCard';
 import { useAuth } from '../lib/auth';
 import { buildSeoHead } from '../lib/seo';
-import { getDashboardStats, type DashboardStats, type TempDataPoint } from '../server/sessions';
+import { getDashboardStats, type DashboardStats, type TempDataPoint, type HealthDataPoint } from '../server/sessions';
 import { DASHBOARD } from '../content/dashboard';
 
 export const Route = createFileRoute('/dashboard')({
@@ -25,6 +25,11 @@ function formatTotalTime(ms: number): string {
   const m = totalMin % 60;
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
+}
+
+function getAchievementLabel(key: string): string {
+  const labels = DASHBOARD.achievementLabels as Record<string, string>;
+  return labels[key] ?? key.replace(/_/g, ' ');
 }
 
 /* ── Summary Card ──────────────────────────────────────────────── */
@@ -209,6 +214,188 @@ function TempTrends({ trends }: { trends: TempDataPoint[] }) {
   );
 }
 
+/* ── Health Impact ──────────────────────────────────────────────── */
+
+function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
+  const { healthMetrics } = stats;
+
+  // No health data at all
+  if (
+    healthMetrics.avgHeartRate == null &&
+    healthMetrics.avgHrv == null &&
+    healthMetrics.totalCalories == null &&
+    healthMetrics.trends.length === 0
+  ) {
+    return (
+      <div className="rounded-3xl border border-edge bg-surface p-6 sm:p-8">
+        <h2 className="text-xl font-bold text-fg">{DASHBOARD.healthHeading}</h2>
+        <p className="mt-2 text-sm text-fg-muted">{DASHBOARD.healthDescription}</p>
+        <p className="mt-6 text-sm text-fg-muted">{DASHBOARD.healthEmpty}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Summary cards row */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        {healthMetrics.avgHeartRate != null ? (
+          <StatCard
+            label={DASHBOARD.healthAvgHr}
+            value={`${healthMetrics.avgHeartRate}`}
+            icon="heart"
+            iconColor="text-red-500"
+          />
+        ) : null}
+        {healthMetrics.peakHeartRate != null ? (
+          <StatCard
+            label={DASHBOARD.healthPeakHr}
+            value={`${healthMetrics.peakHeartRate}`}
+            icon="trending-up"
+            iconColor="text-red-400"
+          />
+        ) : null}
+        {healthMetrics.avgHrv != null ? (
+          <StatCard
+            label={DASHBOARD.healthAvgHrv}
+            value={`${healthMetrics.avgHrv}`}
+            icon="signal"
+            iconColor="text-emerald-500"
+          />
+        ) : null}
+        {healthMetrics.totalCalories != null ? (
+          <StatCard
+            label={DASHBOARD.healthTotalCal}
+            value={`${healthMetrics.totalCalories.toLocaleString()}`}
+            icon="fire"
+            iconColor="text-orange-500"
+          />
+        ) : null}
+        {healthMetrics.avgCaloriesPerSession != null ? (
+          <StatCard
+            label={DASHBOARD.healthAvgCal}
+            value={`${healthMetrics.avgCaloriesPerSession}`}
+            icon="bolt"
+            iconColor="text-orange-400"
+          />
+        ) : null}
+      </div>
+
+      {/* Trend charts */}
+      {healthMetrics.trends.length > 1 ? (
+        <div className="rounded-3xl border border-edge bg-surface p-6 sm:p-8">
+          <h2 className="text-xl font-bold text-fg">{DASHBOARD.healthHeading}</h2>
+          <p className="mt-2 text-sm text-fg-muted">{DASHBOARD.healthDescription}</p>
+
+          {/* Heart Rate trend */}
+          <HealthTrendChart
+            heading={DASHBOARD.healthHrTrendHeading}
+            unit={DASHBOARD.healthHrUnit}
+            data={healthMetrics.trends}
+            getValue={(d) => d.avgHr}
+            barColor="bg-red-400"
+            labelColor="text-red-500"
+          />
+
+          {/* HRV trend */}
+          <HealthTrendChart
+            heading={DASHBOARD.healthHrvTrendHeading}
+            unit={DASHBOARD.healthHrvUnit}
+            data={healthMetrics.trends}
+            getValue={(d) => d.avgHrv}
+            barColor="bg-emerald-400"
+            labelColor="text-emerald-500"
+          />
+
+          {/* Calories trend */}
+          <HealthTrendChart
+            heading={DASHBOARD.healthCalTrendHeading}
+            unit={DASHBOARD.healthCalUnit}
+            data={healthMetrics.trends}
+            getValue={(d) => d.kcal}
+            barColor="bg-orange-400"
+            labelColor="text-orange-500"
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function HealthTrendChart({
+  heading,
+  unit,
+  data,
+  getValue,
+  barColor,
+  labelColor,
+}: {
+  heading: string;
+  unit: string;
+  data: HealthDataPoint[];
+  getValue: (d: HealthDataPoint) => number | null;
+  barColor: string;
+  labelColor: string;
+}) {
+  const points = data.filter((d) => getValue(d) != null);
+  if (points.length < 2) return null;
+
+  const values = points.map((d) => getValue(d) as number);
+  const minV = Math.min(...values);
+  const maxV = Math.max(...values);
+  const range = maxV - minV || 1;
+
+  // Compute simple trend: compare last 5 avg to first 5 avg
+  const recent = values.slice(-5);
+  const early = values.slice(0, 5);
+  const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+  const earlyAvg = early.reduce((a, b) => a + b, 0) / early.length;
+  const trendPct = earlyAvg > 0 ? ((recentAvg - earlyAvg) / earlyAvg) * 100 : 0;
+  const trendLabel =
+    Math.abs(trendPct) < 1
+      ? 'Stable'
+      : `${trendPct > 0 ? '+' : ''}${trendPct.toFixed(1)}%`;
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-baseline justify-between">
+        <p className={`text-xs font-semibold uppercase tracking-widest ${labelColor}`}>
+          {heading}
+        </p>
+        <span className="text-xs font-medium text-fg-muted">
+          {trendLabel} recent trend
+        </span>
+      </div>
+      <div className="mt-3 flex h-24 items-end gap-1 rounded-xl bg-canvas px-3 pb-2">
+        {points.map((d, i) => {
+          const v = getValue(d) as number;
+          const h = 15 + ((v - minV) / range) * 85;
+          const isSauna = d.sessionType === 'sauna';
+          return (
+            <div
+              key={i}
+              className={`group relative flex-1 rounded-t-sm opacity-80 transition-opacity hover:opacity-100 ${barColor}`}
+              style={{ height: `${h}%` }}
+            >
+              <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-fg px-1.5 py-0.5 text-[10px] font-medium text-canvas opacity-0 transition-opacity group-hover:opacity-100">
+                {Math.round(v)} {unit} · {isSauna ? '🔥' : '🧊'}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-1 flex justify-between px-3 text-[10px] text-fg-subtle">
+        <span>
+          {Math.round(minV)} {unit}
+        </span>
+        <span>
+          {Math.round(maxV)} {unit}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* ── Session Breakdown ─────────────────────────────────────────── */
 
 function Breakdown({ stats }: { stats: DashboardStats }) {
@@ -240,7 +427,66 @@ function Breakdown({ stats }: { stats: DashboardStats }) {
           <span className="text-fg-muted">{DASHBOARD.breakdownCold}:</span>
           <span className="font-semibold text-fg">{stats.coldCount}</span>
         </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-fg-subtle" />
+          <span className="text-fg-muted">{DASHBOARD.breakdownContrast}:</span>
+          <span className="font-semibold text-fg">{stats.gamification.contrastCompletedCount}</span>
+        </span>
       </div>
+    </div>
+  );
+}
+
+function Achievements({ stats }: { stats: DashboardStats }) {
+  const unlockedKeys = new Set(stats.gamification.achievements.map((a) => a.key));
+  const entries = Object.entries(DASHBOARD.achievementLabels);
+
+  return (
+    <div className="rounded-3xl border border-edge bg-surface p-6 sm:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-fg">{DASHBOARD.achievementsHeading}</h2>
+          <p className="mt-2 text-sm text-fg-muted">{DASHBOARD.achievementsDescription}</p>
+        </div>
+        <div className="rounded-full border border-edge bg-canvas px-3 py-1 text-xs font-semibold text-fg-muted">
+          {stats.gamification.achievements.length}/{entries.length}
+        </div>
+      </div>
+
+      {stats.gamification.achievements.length === 0 ? (
+        <p className="mt-6 text-sm text-fg-muted">{DASHBOARD.achievementsEmpty}</p>
+      ) : null}
+
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        {entries.map(([key]) => {
+          const unlocked = unlockedKeys.has(key);
+          return (
+            <div
+              key={key}
+              className={`rounded-xl border px-3 py-2 text-sm ${
+                unlocked
+                  ? 'border-heat-dim/40 bg-heat-subtle text-fg'
+                  : 'border-edge bg-canvas text-fg-subtle'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Icon
+                  name={unlocked ? 'sparkles' : 'shield-check'}
+                  className={`h-4 w-4 ${unlocked ? 'text-heat' : 'text-fg-subtle'}`}
+                  aria-hidden="true"
+                />
+                <span className="font-medium">{getAchievementLabel(key)}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {stats.gamification.source === 'derived' ? (
+        <p className="mt-4 text-xs text-fg-subtle">
+          Showing derived progress. Run the gamification migration in Supabase to enable authoritative XP and achievement history.
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -333,7 +579,7 @@ function DashboardPage() {
         {!loading && !error && stats && stats.totalSessions > 0 ? (
           <>
             {/* Summary cards */}
-            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
               <StatCard
                 label={DASHBOARD.totalSessions}
                 value={String(stats.totalSessions)}
@@ -343,6 +589,24 @@ function DashboardPage() {
                 value={`${stats.currentStreakDays} ${DASHBOARD.streakUnit}`}
                 icon="fire"
                 iconColor="text-heat"
+              />
+              <StatCard
+                label={DASHBOARD.bestStreak}
+                value={`${stats.gamification.bestStreakDays} ${DASHBOARD.streakUnit}`}
+                icon="trending-up"
+                iconColor="text-heat"
+              />
+              <StatCard
+                label={DASHBOARD.level}
+                value={`Lv ${stats.gamification.level}`}
+                icon="bolt"
+                iconColor="text-accent"
+              />
+              <StatCard
+                label={DASHBOARD.xp}
+                value={String(stats.gamification.xp)}
+                icon="sparkles"
+                iconColor="text-accent"
               />
               <StatCard
                 label={DASHBOARD.totalTime}
@@ -364,9 +628,19 @@ function DashboardPage() {
               <TempTrends trends={stats.tempTrends} />
             </div>
 
+            {/* Health impact metrics */}
+            <div className="mt-6">
+              <HealthMetricsSection stats={stats} />
+            </div>
+
             {/* Session breakdown */}
             <div className="mt-6">
               <Breakdown stats={stats} />
+            </div>
+
+            {/* Achievements */}
+            <div className="mt-6">
+              <Achievements stats={stats} />
             </div>
 
             {/* Recent sessions */}

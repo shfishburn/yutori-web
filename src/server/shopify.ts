@@ -394,7 +394,12 @@ export const createCart = createServerFn({ method: 'POST' })
     }));
     const result = await storefrontRequest<{
       cartCreate: { cart: StorefrontCart | null; userErrors: Array<{ field: string[] | null; message: string }> };
-    }>(CART_CREATE_MUTATION, { input: { lines: cartLines } });
+    }>(CART_CREATE_MUTATION, {
+      input: {
+        lines: cartLines,
+        buyerIdentity: { countryCode: 'US' },
+      },
+    });
     throwUserErrors(result.cartCreate.userErrors);
     if (!result.cartCreate.cart) throw new Error('cartCreate returned no cart');
     return mapStorefrontCart(result.cartCreate.cart);
