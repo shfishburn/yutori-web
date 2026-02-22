@@ -146,7 +146,9 @@ export const getProfile = createServerFn({ method: 'POST' })
 
     const rows = (await response.json()) as SupabaseProfileRow[];
     if (rows.length === 0) return EMPTY_PROFILE;
-    return mapRowToProfile(rows[0]!);
+    const first = rows[0];
+    if (!first) return EMPTY_PROFILE;
+    return mapRowToProfile(first);
   });
 
 export const upsertProfile = createServerFn({ method: 'POST' })
@@ -185,5 +187,7 @@ export const upsertProfile = createServerFn({ method: 'POST' })
 
     const rows = (await response.json()) as SupabaseProfileRow[];
     if (rows.length === 0) return ctx.data.profile;
-    return mapRowToProfile(rows[0]!);
+    const first = rows[0];
+    if (!first) return ctx.data.profile;
+    return mapRowToProfile(first);
   });

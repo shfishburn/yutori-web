@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { BRAND, NAV } from '../content/common';
 import { useCart } from '../lib/cart';
 import { useAuth } from '../lib/auth';
@@ -9,6 +9,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const { cart } = useCart();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const cartCount = cart?.totalQuantity ?? 0;
 
   return (
@@ -66,7 +67,7 @@ export function Header() {
               <button
                 type="button"
                 onClick={() => {
-                  void signOut();
+                  void signOut().then(() => navigate({ to: '/auth', search: { mode: 'signin' } }));
                 }}
                 className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
               >
@@ -208,7 +209,7 @@ export function Header() {
                 type="button"
                 onClick={() => {
                   setOpen(false);
-                  void signOut();
+                  void signOut().then(() => navigate({ to: '/auth', search: { mode: 'signin' } }));
                 }}
                 className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg"
               >

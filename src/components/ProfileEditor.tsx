@@ -192,8 +192,8 @@ export function ProfileEditor() {
         <div
           className={`mt-4 rounded-xl px-4 py-2 text-sm font-medium ${
             toast.type === 'ok'
-              ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              : 'border border-red-500/30 bg-red-500/10 text-red-400'
+              ? 'border border-success-border bg-success-subtle text-success'
+              : 'border border-danger-border bg-danger-subtle text-danger'
           }`}
         >
           {toast.msg}

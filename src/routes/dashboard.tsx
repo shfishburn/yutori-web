@@ -246,7 +246,7 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             label={DASHBOARD.healthAvgHr}
             value={`${healthMetrics.avgHeartRate}`}
             icon="heart"
-            iconColor="text-red-500"
+            iconColor="text-danger"
           />
         ) : null}
         {healthMetrics.peakHeartRate != null ? (
@@ -254,7 +254,7 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             label={DASHBOARD.healthPeakHr}
             value={`${healthMetrics.peakHeartRate}`}
             icon="trending-up"
-            iconColor="text-red-400"
+            iconColor="text-danger"
           />
         ) : null}
         {healthMetrics.avgHrv != null ? (
@@ -262,7 +262,7 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             label={DASHBOARD.healthAvgHrv}
             value={`${healthMetrics.avgHrv}`}
             icon="signal"
-            iconColor="text-emerald-500"
+            iconColor="text-success"
           />
         ) : null}
         {healthMetrics.totalCalories != null ? (
@@ -270,7 +270,7 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             label={DASHBOARD.healthTotalCal}
             value={`${healthMetrics.totalCalories.toLocaleString()}`}
             icon="fire"
-            iconColor="text-orange-500"
+            iconColor="text-warning"
           />
         ) : null}
         {healthMetrics.avgCaloriesPerSession != null ? (
@@ -278,7 +278,7 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             label={DASHBOARD.healthAvgCal}
             value={`${healthMetrics.avgCaloriesPerSession}`}
             icon="bolt"
-            iconColor="text-orange-400"
+            iconColor="text-warning"
           />
         ) : null}
       </div>
@@ -295,8 +295,8 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             unit={DASHBOARD.healthHrUnit}
             data={healthMetrics.trends}
             getValue={(d) => d.avgHr}
-            barColor="bg-red-400"
-            labelColor="text-red-500"
+            barColor="bg-danger"
+            labelColor="text-danger"
           />
 
           {/* HRV trend */}
@@ -305,8 +305,8 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             unit={DASHBOARD.healthHrvUnit}
             data={healthMetrics.trends}
             getValue={(d) => d.avgHrv}
-            barColor="bg-emerald-400"
-            labelColor="text-emerald-500"
+            barColor="bg-success"
+            labelColor="text-success"
           />
 
           {/* Calories trend */}
@@ -315,8 +315,8 @@ function HealthMetricsSection({ stats }: { stats: DashboardStats }) {
             unit={DASHBOARD.healthCalUnit}
             data={healthMetrics.trends}
             getValue={(d) => d.kcal}
-            barColor="bg-orange-400"
-            labelColor="text-orange-500"
+            barColor="bg-warning"
+            labelColor="text-warning"
           />
         </div>
       ) : null}

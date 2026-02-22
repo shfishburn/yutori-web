@@ -78,18 +78,6 @@ function AuthPage() {
     window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
   }, []);
 
-  if (user) {
-    return (
-      <main className="flex-1 bg-canvas">
-        <section className="mx-auto max-w-3xl px-6 py-16">
-          <div className="rounded-2xl border border-edge bg-surface p-6 text-sm text-fg-muted">
-            Redirecting to your account...
-          </div>
-        </section>
-      </main>
-    );
-  }
-
   const activeError = formError ?? authError;
 
   const modeTitle = useMemo(
@@ -112,6 +100,18 @@ function AuthPage() {
       : isSignUp
         ? 'Create account'
         : 'Sign in';
+
+  if (user) {
+    return (
+      <main className="flex-1 bg-canvas">
+        <section className="mx-auto max-w-3xl px-6 py-16">
+          <div className="rounded-2xl border border-edge bg-surface p-6 text-sm text-fg-muted">
+            Redirecting to your account...
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   const toggleMode = () => {
     setFormError(null);

@@ -496,7 +496,7 @@ type SupabaseHealthSampleRow = {
 
 async function fetchHealthSamples(
   accessToken: string,
-  limit: number = 2000,
+  limit = 2000,
 ): Promise<SupabaseHealthSampleRow[]> {
   const env = getSupabaseEnv();
   const query = buildQueryString({
