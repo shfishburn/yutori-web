@@ -11,6 +11,8 @@ import appCss from '../styles.css?url';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { CartProvider } from '../lib/cart';
+import { AuthProvider } from '../lib/auth';
+import { DESIGN_SYSTEM } from '../lib/designSystem';
 import { SITE_URL } from '../lib/seo';
 
 const organizationJsonLd = JSON.stringify({
@@ -34,7 +36,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { name: 'theme-color', content: '#141726' },
+      { name: 'theme-color', content: DESIGN_SYSTEM.metaThemeColor },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
@@ -63,13 +65,15 @@ function RootDocument({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <CartProvider>
-          <Header />
+        <AuthProvider>
+          <CartProvider>
+            <Header />
 
-          {children}
+            {children}
 
-          <Footer />
-        </CartProvider>
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
 
         {showDevtools ? (
           <TanStackDevtools

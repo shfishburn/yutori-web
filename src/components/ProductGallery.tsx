@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { ShopifyImage } from '../server/shopify';
+import { Icon } from './Icon';
 
 type Props = {
   images: ShopifyImage[];
   productTitle: string;
-  /** Placeholder shown when images array is empty */
+  /** Icon name for the placeholder shown when images array is empty */
   emptyIcon?: string;
   emptyLabel?: string;
 };
@@ -18,7 +19,7 @@ type Props = {
 export function ProductGallery({
   images,
   productTitle,
-  emptyIcon = '\ud83d\uddbc\ufe0f',
+  emptyIcon = 'photo',
   emptyLabel = 'Product images coming soon',
 }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -28,7 +29,9 @@ export function ProductGallery({
       <div className="aspect-4/3 w-full overflow-hidden rounded-2xl border border-edge bg-surface-raised">
         <div className="flex h-full items-center justify-center text-fg-subtle">
           <div className="text-center">
-            <div className="text-5xl" role="img" aria-label={productTitle}>{emptyIcon}</div>
+            <div className="flex justify-center" aria-label={productTitle}>
+              <Icon name={emptyIcon} className="h-16 w-16 text-fg-subtle" />
+            </div>
             <p className="mt-3 text-sm">{emptyLabel}</p>
           </div>
         </div>

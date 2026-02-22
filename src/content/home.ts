@@ -33,6 +33,7 @@ export const PILLARS = [
   {
     icon: 'fire',
     iconLabel: 'Fire',
+    iconBg: 'bg-heat/15',
     ringColor: 'border-heat-dim/40 bg-heat-subtle',
     titleColor: 'text-heat',
     title: 'Sauna',
@@ -42,6 +43,7 @@ export const PILLARS = [
   {
     icon: 'cube',
     iconLabel: 'Ice cube',
+    iconBg: 'bg-accent/15',
     ringColor: 'border-accent-dim/40 bg-accent-subtle',
     titleColor: 'text-accent',
     title: 'Cold Plunge',
@@ -51,6 +53,7 @@ export const PILLARS = [
   {
     icon: 'cloud',
     iconLabel: 'Shower',
+    iconBg: 'bg-surface',
     ringColor: 'border-edge bg-overlay',
     titleColor: 'text-fg-muted',
     title: 'Shower',
@@ -60,6 +63,7 @@ export const PILLARS = [
   {
     icon: 'signal',
     iconLabel: 'Satellite antenna',
+    iconBg: 'bg-surface',
     ringColor: 'border-edge bg-overlay',
     titleColor: 'text-fg-subtle',
     title: 'Sensors',

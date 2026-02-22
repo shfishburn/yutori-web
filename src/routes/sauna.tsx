@@ -113,7 +113,7 @@ function SaunaPage() {
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
-        emptyIcon={'\ud83d\udd25'}
+        emptyIcon="fire"
       />
 
       <SectionWrapper variant="surface">
@@ -146,12 +146,12 @@ function SaunaPage() {
                         opacity: 0.8,
                       }}
                     />
-                    <span className="text-[10px] text-fg-subtle">{nm}</span>
+                    <span className="text-2xs text-fg-subtle">{nm}</span>
                   </div>
                 ))}
               </div>
               <p className="text-xs font-medium text-fg-subtle">{LIGHT_THERAPY.spectrumLabel}</p>
-              <p className="text-[10px] text-fg-subtle">{LIGHT_THERAPY.spectrumUnit}</p>
+              <p className="text-2xs text-fg-subtle">{LIGHT_THERAPY.spectrumUnit}</p>
             </div>
           </div>
         </SectionTwoColumnFeature>

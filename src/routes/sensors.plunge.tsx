@@ -105,7 +105,7 @@ function PlungeSensorPage() {
         cartError={cartError}
         onAddToCart={handleAddToCart}
         accentColor="accent"
-        emptyIcon={'❄️'}
+        emptyIcon="cube"
       />
 
       <SectionWrapper variant="surface">

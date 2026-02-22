@@ -120,7 +120,7 @@ function ContrastBundlePage() {
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
-        emptyIcon={'🔥❄️'}
+        emptyIcon="sparkles"
       />
 
       <SectionWrapper variant="surface">

@@ -24,6 +24,8 @@ const colorMap = {
     badgeDot: 'bg-heat',
     priceText: 'text-heat',
     statText: 'text-heat',
+    statBg: 'bg-heat-subtle',
+    statBorder: 'border-heat-dim/30',
     btnBg: 'bg-heat',
     btnText: 'text-heat-fg',
     blur1: 'bg-heat/10',
@@ -36,6 +38,8 @@ const colorMap = {
     badgeDot: 'bg-accent',
     priceText: 'text-accent',
     statText: 'text-accent',
+    statBg: 'bg-accent-subtle',
+    statBorder: 'border-accent-dim/30',
     btnBg: 'bg-accent',
     btnText: 'text-accent-fg',
     blur1: 'bg-accent/10',
@@ -53,7 +57,7 @@ export function SectionHero({
   cartError,
   onAddToCart,
   accentColor = 'heat',
-  emptyIcon = '\ud83d\uddbc\ufe0f',
+  emptyIcon = 'photo',
 }: Props) {
   const c = colorMap[accentColor];
 
@@ -100,7 +104,7 @@ export function SectionHero({
 
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {content.quickStats.map((s) => (
-                <div key={s.label} className="rounded-xl border border-edge bg-surface px-4 py-3 text-center">
+                <div key={s.label} className={`rounded-xl border ${c.statBorder} ${c.statBg} px-4 py-3 text-center`}>
                   <div className={`text-lg font-bold ${c.statText}`}>{s.value}</div>
                   <div className="mt-0.5 text-xs text-fg-subtle">{s.label}</div>
                 </div>
@@ -129,7 +133,7 @@ export function SectionHero({
                 </p>
               ) : null}
               {cartError ? (
-                <p role="alert" className="mt-2 text-center text-xs text-red-600">
+                <p role="alert" className="mt-2 text-center text-xs text-danger">
                   {cartError}
                 </p>
               ) : null}

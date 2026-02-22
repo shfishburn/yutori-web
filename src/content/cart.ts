@@ -14,6 +14,7 @@ export const PAGE = {
   emptyCtaLabel: 'View products',
   totalLabel: 'Total',
   removeLabel: 'Remove',
+  qtyLabel: 'Qty:',
 };
 
 /* ── Deposit notice ───────────────────────────────────────── */

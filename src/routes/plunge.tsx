@@ -111,11 +111,11 @@ function PlungePage() {
         cartError={cartError}
         onAddToCart={handleAddToCart}
         accentColor="accent"
-        emptyIcon={'\u2744\ufe0f'}
+        emptyIcon="cube"
       />
 
       <SectionWrapper variant="surface">
-        <SectionFeatureCards {...THE_TUB} />
+        <SectionFeatureCards {...THE_TUB} labelColor="text-accent" />
       </SectionWrapper>
 
       <SectionWrapper>
@@ -154,7 +154,7 @@ function PlungePage() {
       </SectionWrapper>
 
       <SectionWrapper variant="surface" id="pricing">
-        <SectionPricingCards {...PRICING} />
+        <SectionPricingCards {...PRICING} accentColor="accent" />
       </SectionWrapper>
 
       <SectionWrapper variant="surface">

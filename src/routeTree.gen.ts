@@ -14,7 +14,10 @@ import { Route as ShowerRouteImport } from './routes/shower'
 import { Route as SaunaRouteImport } from './routes/sauna'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PlungeRouteImport } from './routes/plunge'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SensorsIndexRouteImport } from './routes/sensors.index'
 import { Route as SensorsSaunaRouteImport } from './routes/sensors.sauna'
@@ -47,9 +50,24 @@ const PlungeRoute = PlungeRouteImport.update({
   path: '/plunge',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -85,7 +103,10 @@ const ProductsHandleRoute = ProductsHandleRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/dashboard': typeof DashboardRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
   '/sauna': typeof SaunaRoute
@@ -99,7 +120,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/dashboard': typeof DashboardRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
   '/sauna': typeof SaunaRoute
@@ -114,7 +138,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/dashboard': typeof DashboardRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
   '/sauna': typeof SaunaRoute
@@ -130,7 +157,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
+    | '/auth'
     | '/cart'
+    | '/dashboard'
     | '/plunge'
     | '/privacy'
     | '/sauna'
@@ -144,7 +174,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
+    | '/auth'
     | '/cart'
+    | '/dashboard'
     | '/plunge'
     | '/privacy'
     | '/sauna'
@@ -158,7 +191,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/account'
+    | '/auth'
     | '/cart'
+    | '/dashboard'
     | '/plunge'
     | '/privacy'
     | '/sauna'
@@ -173,7 +209,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
+  AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
+  DashboardRoute: typeof DashboardRoute
   PlungeRoute: typeof PlungeRoute
   PrivacyRoute: typeof PrivacyRoute
   SaunaRoute: typeof SaunaRoute
@@ -223,11 +262,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlungeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cart': {
       id: '/cart'
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -277,7 +337,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
+  AuthRoute: AuthRoute,
   CartRoute: CartRoute,
+  DashboardRoute: DashboardRoute,
   PlungeRoute: PlungeRoute,
   PrivacyRoute: PrivacyRoute,
   SaunaRoute: SaunaRoute,

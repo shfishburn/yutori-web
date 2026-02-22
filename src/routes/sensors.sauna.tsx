@@ -104,7 +104,7 @@ function SaunaSensorPage() {
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
-        emptyIcon={'🌡️'}
+        emptyIcon="signal"
       />
 
       <SectionWrapper variant="surface">

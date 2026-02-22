@@ -1,0 +1,253 @@
+ui_polish_plan:
+  project: yutori-web
+  date: 2026-02-22
+  audit_date: 2026-02-22
+  status: complete
+
+  steps:
+
+    - id: 1
+      title: "Header — replace inline SVG cart icon with Heroicon"
+      status: done
+      files:
+        - src/components/Header.tsx
+        - src/components/Icon.tsx
+      detail: >
+        The cart icon is a hand-written SVG path. Swap for ShoppingBagIcon from
+        @heroicons/react/24/outline via the Icon component.
+      implemented: >
+        Added ShoppingBagIcon to Icon registry. Replaced inline SVG with
+        <Icon name="shopping-bag" className="h-4.5 w-4.5" aria-hidden="true" />.
+        Icon.tsx also extended to accept aria-hidden prop.
+
+    - id: 2
+      title: "SectionHero — replace emoji emptyIcon default with Icon component"
+      status: done
+      files:
+        - src/components/sections/SectionHero.tsx
+        - src/components/ProductGallery.tsx
+        - src/routes/sauna.tsx
+        - src/routes/plunge.tsx
+        - src/routes/shower.tsx
+        - src/routes/sensors.sauna.tsx
+        - src/routes/sensors.plunge.tsx
+        - src/routes/sensors.bundle.tsx
+        - src/components/Icon.tsx
+      detail: >
+        emptyIcon prop defaults to the 🖼️ emoji. Swap ProductGallery's empty
+        state to <Icon name="photo" /> and add PhotoIcon to registry.
+      implemented: >
+        Added PhotoIcon to registry ('photo'). ProductGallery and SectionHero
+        defaults updated. Product routes: sauna → 'fire', plunge → 'cube',
+        shower → 'cloud'. Sensor routes: sensors.sauna → 'signal',
+        sensors.plunge → 'cube', sensors.bundle → 'sparkles'.
+
+    - id: 3
+      title: "Cart page — deposit callout styling + checkout button"
+      status: done
+      files:
+        - src/routes/cart.tsx
+        - src/content/cart.ts
+      detail: >
+        Replace `bg-heat/40` disabled state with opacity-50; add divider;
+        move qty to badge.
+      implemented: >
+        Disabled button uses opacity-50. <hr> added above totals. Qty badge
+        with 'Qty: N' label (qtyLabel added to cart.ts PAGE).
+
+    - id: 4
+      title: "Homepage — Pillars section icon container"
+      status: done
+      files:
+        - src/routes/index.tsx
+        - src/content/home.ts
+      detail: >
+        Wrap each pillar icon in a rounded container with iconBg color.
+      implemented: >
+        iconBg added to PILLARS content (bg-heat/15, bg-accent/15, bg-surface).
+        Wrapped in inline-flex h-10 w-10 rounded-xl container.
+
+    - id: 5
+      title: "Homepage — Benefits grid icon container"
+      status: done
+      files:
+        - src/routes/index.tsx
+      detail: >
+        Wrap each benefit icon in a bg-surface circle container.
+      implemented: >
+        inline-flex h-9 w-9 rounded-full bg-surface wrapper. Icon uses h-5 w-5.
+        Per-item iconColor retained.
+
+    - id: 6
+      title: "Product pages — SectionPricingCards accent color prop"
+      status: done
+      files:
+        - src/components/sections/SectionPricingCards.tsx
+        - src/routes/plunge.tsx
+        - src/routes/shower.tsx
+      detail: >
+        SectionPricingCards hard-codes heat. Add accentColor prop (heat|accent).
+      implemented: >
+        accentMap added. plunge and shower pass accentColor="accent".
+
+    - id: 7
+      title: "Product pages — SectionHero quick-stat pill polish"
+      status: done
+      files:
+        - src/components/sections/SectionHero.tsx
+      detail: >
+        Give stat pills a tinted bg from the colorMap to match the badge.
+      implemented: >
+        statBg and statBorder added to colorMap. Pills use accent-tinted bg.
+
+    - id: 8
+      title: "Typography — consistent section label style"
+      status: done
+      files:
+        - src/routes/plunge.tsx
+        - src/routes/shower.tsx
+        - src/routes/sensors.plunge.tsx
+      detail: >
+        Label color should follow page accentColor.
+      implemented: >
+        Explicit labelColor="text-accent" added to all section calls on
+        plunge, shower, sensors.plunge. SectionWrapper kept stateless.
+      audit_fix: >
+        shower.tsx SectionHero was missing accentColor="accent". Fixed.
+
+    - id: 9
+      title: "Mobile — cart line items wrap gracefully"
+      status: done
+      files:
+        - src/routes/cart.tsx
+        - src/components/Icon.tsx
+      detail: >
+        Stack items gracefully on mobile; replace remove text button with XMarkIcon.
+      implemented: >
+        items-start layout. Icon-only remove button with XMarkIcon,
+        aria-label="Remove". XMarkIcon added to registry.
+
+    - id: 10
+      title: "Footer — add Heroicon contact icon next to email"
+      status: done
+      files:
+        - src/components/Footer.tsx
+        - src/components/Icon.tsx
+      detail: >
+        EnvelopeIcon 16×16 inline before support email.
+      implemented: >
+        EnvelopeIcon added to registry ('envelope'). Support email anchor
+        uses inline-flex + Icon.
+
+    - id: 11
+      title: "Header — replace hamburger/close SVGs with Heroicons"
+      status: done
+      files:
+        - src/components/Header.tsx
+        - src/components/Icon.tsx
+      detail: >
+        The mobile menu button still uses two hand-written inline SVGs: a
+        3-line hamburger (Bars3Icon) and a X close (which is the same shape
+        as XMarkIcon, already in registry). Replace both with Icon components
+        to complete the header icon audit.
+        Add Bars3Icon to registry under 'bars-3'.
+      implemented: >
+        Added Bars3Icon to Icon registry under 'bars-3'. Replaced the open
+        SVG with <Icon name="bars-3" className="h-5 w-5" /> and close SVG
+        with <Icon name="x-mark" className="h-5 w-5" /> (XMarkIcon already
+        in registry).
+
+    - id: 12
+      title: "Auth — on-brand focus ring for form inputs"
+      status: done
+      files:
+        - src/routes/auth.tsx
+      detail: >
+        All three form inputs use `focus:border-edge-strong` which gives a
+        barely visible focus change. Change to `focus:border-accent` so the
+        focused field is distinctly highlighted with the brand accent color.
+        Matches the sign-in button color and provides clear keyboard navigation
+        cues.
+      implemented: >
+        All three inputs (email, password, confirm-password) changed from
+        focus:border-edge-strong to focus:border-accent.
+
+    - id: 13
+      title: "Cart — empty state icon"
+      status: done
+      files:
+        - src/routes/cart.tsx
+      detail: >
+        The empty cart state shows only "Your cart is empty." plain text.
+        Add a ShoppingBagIcon (already in registry) centered above the
+        message for visual weight. Use `h-12 w-12 text-fg-subtle` and
+        display in a `mb-4` wrapper.
+      implemented: >
+        Added <Icon name="shopping-bag" className="mx-auto mb-4 h-12 w-12
+        text-fg-subtle" aria-hidden="true" /> above the empty-cart message.
+
+    - id: 14
+      title: "Account — animate loading states"
+      status: done
+      files:
+        - src/routes/account.tsx
+      detail: >
+        Two "Loading..." plain-text boxes exist: the full page spinner
+        ("Loading account...") and the orders section skeleton
+        ("Loading your orders..."). Add `animate-pulse` to both and use
+        a set of blank rounded bar divs instead of text to give a proper
+        skeleton feel without a library.
+      implemented: >
+        Both loading states replaced with animate-pulse skeletons using
+        h-3/h-5 rounded-full bg-edge div bars at varied widths.
+
+    - id: 15
+      title: "Account — external order link as button"
+      status: done
+      files:
+        - src/routes/account.tsx
+        - src/components/Icon.tsx
+      detail: >
+        The "Open Shopify order status" link is styled only with an underline
+        and no visual affordance of it being a primary action. Upgrade it to
+        a small outlined button-style anchor. Add ArrowTopRightOnSquareIcon to
+        the Icon registry and place it inline-right of the label text so users
+        clearly understand it opens in a new tab.
+      implemented: >
+        Added ArrowTopRightOnSquareIcon to registry under 'arrow-top-right'.
+        Anchor now uses border border-edge rounded-lg px-3 py-1.5 text-sm
+        font-semibold button style with inline Icon name="arrow-top-right".
+        Label shortened to "Order status" for compactness.
+
+  icon_registry_additions:
+    done:
+      - ShoppingBagIcon → 'shopping-bag'
+      - PhotoIcon → 'photo'
+      - EnvelopeIcon → 'envelope'
+      - XMarkIcon → 'x-mark'
+      - Bars3Icon → 'bars-3'
+      - ArrowTopRightOnSquareIcon → 'arrow-top-right'
+    note: >
+      Icon component extended with aria-hidden prop support.
+
+  audit_fixes_applied:
+    - "sensors.sauna/plunge/bundle: emoji emptyIcon → registered icon names"
+    - "shower.tsx SectionHero: added accentColor='accent' (stat pills/badge were heat)"
+    - "shower.tsx SectionCtaBanner: added accentColor='accent' (button was bg-heat)"
+
+  outstanding:
+    - id: A
+      title: "README — update cart architecture description"
+      detail: >
+        README.md still describes checkout via Admin Draft Orders. Cart was
+        migrated to Storefront API. Should reflect the Storefront token env var
+        and cartCreate/cartLinesAdd flow.
+    - id: B
+      title: "Selling Plans — Shopify Admin setup"
+      detail: >
+        The cart code (shopify.ts) already threads sellingPlanId through
+        cartCreate/cartLinesAdd and reads sellingPlanAllocation in CART_FIELDS.
+        sauna.tsx now passes SELLING_PLAN_DEPOSIT_ID to addItem(). Still needed:
+        create the Selling Plans in Shopify Admin, set VITE_SHOPIFY_SELLING_PLAN_*
+        env vars, and wire plunge/shower/sensors routes to do the same.
+

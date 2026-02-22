@@ -20,6 +20,14 @@ Set these environment variables (Vercel Project Settings → Environment Variabl
 - `SHOPIFY_STORE_DOMAIN` (e.g. `your-store.myshopify.com`)
 - `SHOPIFY_ADMIN_API_ACCESS_TOKEN` (Admin API token, typically starts with `shpat_`)
 - `SHOPIFY_ADMIN_API_VERSION` (optional, default `2025-01`)
+- `SHOPIFY_STOREFRONT_ACCESS_TOKEN` (Storefront API token for cart + checkout)
+- `SHOPIFY_STOREFRONT_API_VERSION` (optional, default `2024-10`)
+- `VITE_SUPABASE_URL` (Supabase project URL used by web auth)
+- `VITE_SUPABASE_ANON_KEY` (Supabase anon key used by web auth)
+
+For server-side account verification you can also set:
+- `SUPABASE_URL` (optional fallback to `VITE_SUPABASE_URL`)
+- `SUPABASE_ANON_KEY` (optional fallback to `VITE_SUPABASE_ANON_KEY`)
 
 Routes:
 - `/products` lists products
@@ -46,6 +54,12 @@ This project uses [Vitest](https://vitest.dev/) for testing. You can run the tes
 
 ```bash
 npm run test
+```
+
+Design token enforcement check:
+
+```bash
+npm run lint:design-tokens
 ```
 
 ## Styling

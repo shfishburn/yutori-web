@@ -87,7 +87,9 @@ function HomePage() {
                 to={p.href}
                 className={`group rounded-2xl border ${p.ringColor} p-7 transition-colors hover:border-edge-strong`}
               >
-                <Icon name={p.icon} className={`h-7 w-7 ${p.titleColor}`} aria-label={p.iconLabel} />
+                <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${p.iconBg}`}>
+                  <Icon name={p.icon} className={`h-6 w-6 ${p.titleColor}`} aria-label={p.iconLabel} />
+                </div>
                 <h3 className={`mt-4 text-lg font-bold ${p.titleColor}`}>{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-fg-muted">{p.body}</p>
               </Link>
@@ -151,7 +153,7 @@ function HomePage() {
 
           {/* Phone mockup */}
           <div className="flex justify-center lg:justify-end">
-            <div className="w-56 sm:w-64 rounded-[2.5rem] border-4 border-edge-strong bg-canvas p-4 shadow-2xl ring-1 ring-white/5">
+            <div className="ui-phone-shell">
               <div className="mb-4 flex items-center justify-between px-1 text-xs text-fg-subtle">
                 <span>9:41</span><span>{'\u25cf\u25cf\u25cf'}</span>
               </div>
@@ -198,7 +200,9 @@ function HomePage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {BENEFITS.map((b) => (
               <div key={b.label} className="rounded-2xl border border-edge bg-canvas p-5">
-                <Icon name={b.icon} className={`h-6 w-6 ${b.iconColor}`} aria-label={b.iconLabel} />
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface">
+                  <Icon name={b.icon} className={`h-5 w-5 ${b.iconColor}`} aria-label={b.iconLabel} />
+                </div>
                 <div className="mt-3 font-semibold text-fg">{b.label}</div>
                 <p className="mt-1.5 text-xs leading-relaxed text-fg-muted">{b.body}</p>
               </div>

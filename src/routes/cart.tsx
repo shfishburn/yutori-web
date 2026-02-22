@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useCart } from '../lib/cart';
 import { formatPrice } from '../lib/format';
 import { buildSeoHead } from '../lib/seo';
+import { Icon } from '../components/Icon';
 import { SEO, PAGE, DEPOSIT_NOTICE, TERMS, CHECKOUT } from '../content/cart';
 
 const DEPOSIT_PATTERN = /\bdeposit\b/i;
@@ -24,9 +25,11 @@ function CartPage() {
 
   const lines = cart?.lines.edges.map((e) => e.node) ?? [];
   const isEmpty = lines.length === 0;
-  const hasDepositLine = lines.some((line) =>
-    DEPOSIT_PATTERN.test(line.merchandise.title) ||
-    DEPOSIT_PATTERN.test(line.merchandise.product.title),
+  const hasDepositLine = lines.some(
+    (line) =>
+      line.sellingPlanAllocation != null ||
+      DEPOSIT_PATTERN.test(line.merchandise.title) ||
+      DEPOSIT_PATTERN.test(line.merchandise.product.title),
   );
 
   const handleRemove = async (lineId: string) => {
@@ -45,6 +48,7 @@ function CartPage() {
 
         {isEmpty ? (
           <div className="mt-12 text-center">
+            <Icon name="shopping-bag" className="mx-auto mb-4 h-12 w-12 text-fg-subtle" aria-hidden="true" />
             <p className="text-lg text-fg-muted">{PAGE.emptyMessage}</p>
             <Link
               to="/"
@@ -57,7 +61,7 @@ function CartPage() {
           <>
             <div className="mt-8 divide-y divide-edge rounded-2xl border border-edge">
               {lines.map((line) => (
-                <div key={line.id} className="flex items-center gap-4 p-5">
+                <div key={line.id} className="flex items-start gap-4 p-5">
                   {line.merchandise.product.featuredImage ? (
                     <img
                       src={line.merchandise.product.featuredImage.url}
@@ -81,21 +85,26 @@ function CartPage() {
                         line.merchandise.price.amount,
                         line.merchandise.price.currencyCode,
                       )}
-                      {' '}&times; {line.quantity}
                     </p>
+                    <span className="mt-1 inline-block rounded-full bg-surface px-2 py-0.5 text-xs text-fg-muted">
+                      {PAGE.qtyLabel} {line.quantity}
+                    </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => handleRemove(line.id)}
                     disabled={loading}
-                    className="shrink-0 rounded-lg border border-edge px-3 py-1.5 text-xs text-fg-muted transition-colors hover:bg-surface hover:text-fg disabled:opacity-50"
+                    aria-label={PAGE.removeLabel}
+                    className="shrink-0 rounded-lg border border-edge p-1.5 text-fg-muted transition-colors hover:bg-surface hover:text-fg disabled:opacity-50"
                   >
-                    {PAGE.removeLabel}
+                    <Icon name="x-mark" className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </div>
               ))}
             </div>
+
+            <hr className="mt-8 border-edge" />
 
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-edge bg-surface p-5">
               <span className="font-semibold text-fg">{PAGE.totalLabel}</span>
@@ -145,10 +154,7 @@ function CartPage() {
                 }
               }}
               aria-disabled={!termsAccepted || loading}
-              className={`mt-6 block w-full rounded-xl px-6 py-4 text-center font-semibold transition-opacity ${
-                termsAccepted && !loading
-                  ? 'bg-heat text-heat-fg hover:opacity-90'
-                  : 'cursor-not-allowed bg-heat/40 text-heat-fg/60'
+              className={`mt-6 block w-full rounded-xl px-6 py-4 text-center font-semibold transition-opacity bg-heat text-heat-fg hover:opacity-90 ${                !termsAccepted || loading ? 'cursor-not-allowed opacity-50' : ''
               }`}
             >
               {loading ? CHECKOUT.loadingLabel : CHECKOUT.label}
@@ -156,7 +162,7 @@ function CartPage() {
 
             <p className="mt-3 text-center text-xs text-fg-subtle">{CHECKOUT.redirectNote}</p>
             {cartError ? (
-              <p role="alert" className="mt-2 text-center text-xs text-red-600">
+              <p role="alert" className="mt-2 text-center text-xs text-danger">
                 {cartError}
               </p>
             ) : null}

@@ -187,7 +187,7 @@ function ProductPage() {
                 {checkoutAvailable ? DETAIL_CTA.statusAvailable : statusUnavailable}
               </p>
               {cartError ? (
-                <p role="alert" className="mt-2 text-center text-xs text-red-600">
+                <p role="alert" className="mt-2 text-center text-xs text-danger">
                   {cartError}
                 </p>
               ) : null}

@@ -36,7 +36,7 @@ export function SectionBadgeFeatureGrid({
       <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
         {features.map((f) => (
           <div key={f.title} className="rounded-2xl border border-edge bg-surface p-7">
-            <span className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${f.badgeColor}`}>
+            <span className={`inline-block rounded-full px-3 py-1 text-micro font-bold uppercase tracking-wider ${f.badgeColor}`}>
               {f.badge}
             </span>
             <h3 className="mt-4 text-lg font-bold text-fg">{f.title}</h3>

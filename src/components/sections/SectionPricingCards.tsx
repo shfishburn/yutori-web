@@ -8,17 +8,36 @@ type Props = {
   cards: PricingCard[];
   columns?: 2 | 3;
   finePrint?: string;
+  accentColor?: 'heat' | 'accent';
 };
+
+const accentMap = {
+  heat: {
+    labelColor: 'text-heat',
+    hlBorder: 'border-heat-dim/40',
+    hlBg: 'bg-heat-subtle',
+    hlText: 'text-heat',
+  },
+  accent: {
+    labelColor: 'text-accent',
+    hlBorder: 'border-accent-dim/40',
+    hlBg: 'bg-accent-subtle',
+    hlText: 'text-accent',
+  },
+} as const;
 
 export function SectionPricingCards({
   label,
-  labelColor = 'text-heat',
+  labelColor,
   heading,
   description,
   cards,
   columns = 3,
   finePrint,
+  accentColor = 'heat',
 }: Props) {
+  const a = accentMap[accentColor];
+  const resolvedLabelColor = labelColor ?? a.labelColor;
   const gridCols =
     columns === 2
       ? 'sm:grid-cols-2'
@@ -27,7 +46,7 @@ export function SectionPricingCards({
   return (
     <>
       {label && (
-        <p className={`mb-3 text-xs font-semibold uppercase tracking-widest ${labelColor}`}>
+        <p className={`mb-3 text-xs font-semibold uppercase tracking-widest ${resolvedLabelColor}`}>
           {label}
         </p>
       )}
@@ -46,11 +65,11 @@ export function SectionPricingCards({
             key={c.title}
             className={`rounded-2xl border p-7 ${
               c.highlight
-                ? 'border-heat-dim/40 bg-heat-subtle'
+                ? `${a.hlBorder} ${a.hlBg}`
                 : 'border-edge bg-canvas'
             }`}
           >
-            <div className={`text-2xl font-bold ${c.highlight ? 'text-heat' : 'text-fg'}`}>
+            <div className={`text-2xl font-bold ${c.highlight ? a.hlText : 'text-fg'}`}>
               {c.value}
             </div>
             <h3 className="mt-2 font-bold text-fg">{c.title}</h3>

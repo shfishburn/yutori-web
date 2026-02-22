@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { BRAND, NAV } from '../content/common';
 import { useCart } from '../lib/cart';
+import { useAuth } from '../lib/auth';
+import { Icon } from './Icon';
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const { cart } = useCart();
+  const { user, signOut } = useAuth();
   const cartCount = cart?.totalQuantity ?? 0;
 
   return (
@@ -46,28 +49,56 @@ export function Header() {
 
         {/* Desktop CTA */}
         <div className="hidden items-center gap-3 sm:flex">
+          {user ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.dashboard}
+              </Link>
+              <Link
+                to="/account"
+                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.account}
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  void signOut();
+                }}
+                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.signOut}
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                search={{ mode: 'signin' }}
+                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.signIn}
+              </Link>
+              <Link
+                to="/auth"
+                search={{ mode: 'signup' }}
+                className="rounded-lg bg-heat px-3 py-2 text-sm font-semibold text-heat-fg transition-opacity hover:opacity-90"
+              >
+                {NAV.signUp}
+              </Link>
+            </>
+          )}
           <Link
             to="/cart"
             aria-label={`${NAV.cartLabel}${cartCount > 0 ? ` (${cartCount})` : ''}`}
             className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-edge text-fg-muted transition-colors hover:bg-surface hover:text-fg"
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <path d="M16 10a4 4 0 01-8 0" />
-            </svg>
+            <Icon name="shopping-bag" className="h-4.5 w-4.5" aria-hidden="true" />
             {cartCount > 0 ? (
-              <span className="absolute -right-1 -top-1 rounded-full bg-heat px-1.5 py-0.5 text-[10px] font-semibold text-heat-fg">
+              <span className="absolute -right-1 -top-1 rounded-full bg-heat px-1.5 py-0.5 text-2xs font-semibold text-heat-fg">
                 {cartCount}
               </span>
             ) : null}
@@ -88,13 +119,9 @@ export function Header() {
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-edge text-fg-muted transition-colors hover:bg-surface sm:hidden"
         >
           {open ? (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <Icon name="x-mark" className="h-5 w-5" aria-hidden="true" />
           ) : (
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <Icon name="bars-3" className="h-5 w-5" aria-hidden="true" />
           )}
         </button>
       </div>
@@ -139,6 +166,55 @@ export function Header() {
               {NAV.cartLabel}
               {cartCount > 0 ? ` (${cartCount})` : ''}
             </Link>
+            {user ? (
+              <>
+              <Link
+                to="/dashboard"
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
+              >
+                {NAV.dashboard}
+              </Link>
+              <Link
+                to="/account"
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
+              >
+                {NAV.account}
+              </Link>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                search={{ mode: 'signin' }}
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
+              >
+                {NAV.signIn}
+              </Link>
+            )}
+            {!user ? (
+              <Link
+                to="/auth"
+                search={{ mode: 'signup' }}
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-heat"
+              >
+                {NAV.signUp}
+              </Link>
+            ) : null}
+            {user ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  void signOut();
+                }}
+                className="rounded-lg px-3 py-2.5 text-left text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.signOut}
+              </button>
+            ) : null}
             <Link
               to="/privacy"
               onClick={() => setOpen(false)}

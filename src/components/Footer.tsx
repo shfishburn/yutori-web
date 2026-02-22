@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { BRAND, FOOTER_COLUMNS, FOOTER_SUPPORT_HEADING, FOOTER_COPYRIGHT } from '../content/common';
+import { Icon } from './Icon';
 
 export function Footer() {
   return (
@@ -46,8 +47,9 @@ export function Footer() {
                 <li>
                   <a
                     href={`mailto:${BRAND.supportEmail}`}
-                    className="text-sm text-fg-muted transition-colors hover:text-fg"
+                    className="inline-flex items-center gap-1.5 text-sm text-fg-muted transition-colors hover:text-fg"
                   >
+                    <Icon name="envelope" className="h-4 w-4 shrink-0" aria-hidden="true" />
                     {BRAND.supportEmail}
                   </a>
                 </li>

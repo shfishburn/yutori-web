@@ -35,12 +35,32 @@
   --color-heat-subtle:     oklch(24% 0.065 68);
   --color-heat-fg:         oklch(10% 0.015 258);
 
+  /* Status semantics */
+  --color-success:         oklch(78% 0.16 150);
+  --color-success-subtle:  oklch(22% 0.045 150);
+  --color-success-border:  oklch(55% 0.11 150);
+
+  --color-warning:         oklch(79% 0.16 75);
+  --color-warning-subtle:  oklch(24% 0.058 75);
+  --color-warning-border:  oklch(59% 0.12 75);
+
+  --color-danger:          oklch(71% 0.17 27);
+  --color-danger-subtle:   oklch(22% 0.055 27);
+  --color-danger-border:   oklch(54% 0.125 27);
+
+  --color-glass-ring:      oklch(100% 0.001 258 / 0.08);
+
   /* Typography */
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 0.9375rem;
 
-  /* Layout */
+  /* Layout + Shape */
   --spacing-gutter: 1.5rem;
+  --radius-device: 2.5rem;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -64,5 +84,35 @@
 
   #root {
     display: contents;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SEMANTIC UI CLASSES
+───────────────────────────────────────────────────────────────── */
+@layer components {
+  .ui-alert-danger {
+    @apply rounded-xl border border-danger-border bg-danger-subtle px-4 py-3 text-sm text-danger;
+  }
+
+  .ui-alert-warning {
+    @apply rounded-xl border border-warning-border bg-warning-subtle px-4 py-3 text-sm text-warning;
+  }
+
+  .ui-chip-status-success {
+    @apply border-success-border bg-success-subtle text-success;
+  }
+
+  .ui-chip-status-warning {
+    @apply border-warning-border bg-warning-subtle text-warning;
+  }
+
+  .ui-chip-status-muted {
+    @apply border-edge bg-surface text-fg-muted;
+  }
+
+  .ui-phone-shell {
+    @apply w-56 border-4 border-edge-strong bg-canvas p-4 shadow-2xl ring-1 ring-glass-ring sm:w-64;
+    border-radius: var(--radius-device);
   }
 }

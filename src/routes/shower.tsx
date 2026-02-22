@@ -108,27 +108,28 @@ function ShowerPage() {
         cartLoading={cartLoading}
         cartError={cartError}
         onAddToCart={handleAddToCart}
-        emptyIcon={'\ud83d\udebf'}
+        accentColor="accent"
+        emptyIcon="cloud"
       />
 
       <SectionWrapper variant="surface">
-        <SectionFeatureCards {...THE_STRUCTURE} />
+        <SectionFeatureCards {...THE_STRUCTURE} labelColor="text-accent" />
       </SectionWrapper>
 
       <SectionWrapper>
-        <SectionIconFeatureCards {...COPPER} columns={3} />
+        <SectionIconFeatureCards {...COPPER} columns={3} labelColor="text-accent" accentColor="accent" />
       </SectionWrapper>
 
       <SectionWrapper variant="surface">
-        <SectionIconFeatureCards {...CONFIGURATIONS} columns={2} />
+        <SectionIconFeatureCards {...CONFIGURATIONS} columns={2} labelColor="text-accent" accentColor="accent" />
       </SectionWrapper>
 
       <SectionWrapper>
-        <SectionFeatureCards {...SYSTEM_FIT} />
+        <SectionFeatureCards {...SYSTEM_FIT} labelColor="text-accent" />
       </SectionWrapper>
 
       <SectionWrapper variant="surface" id="pricing">
-        <SectionPricingCards {...PRICING} />
+        <SectionPricingCards {...PRICING} accentColor="accent" />
       </SectionWrapper>
 
       <SectionWrapper variant="surface">
@@ -145,6 +146,7 @@ function ShowerPage() {
         checkoutUnavailableHelp={checkoutUnavailableHelp}
         cartLoading={cartLoading}
         onAddToCart={handleAddToCart}
+        accentColor="accent"
       />
     </main>
   );
