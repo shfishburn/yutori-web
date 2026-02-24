@@ -167,6 +167,163 @@ function stripCodeFences(text: string): string {
   return text;
 }
 
+// ── Governance / Output Gating ─────────────────────────────────
+// Runs AFTER AI response parsing, BEFORE returning to client.
+// Three layers: claim filter, duration clamp, protocol safety check.
+
+/** Terms that must never appear in mobile-facing AI output. Case-insensitive. */
+const BLOCKED_TERM_PATTERNS = [
+  /\bHSP\d*\b/i,
+  /\bgrowth\s+hormone\b/i,
+  /\bnorepinephrine\b/i,
+  /\bcytochrome\b/i,
+  /\bATP\b/,
+  /\bbrown\s+fat\b/i,
+  /\bthermogenesis\b/i,
+  /\bcold\s+shock\s+proteins?\b/i,
+  /\bdiagnos/i,
+  /\btreat(?:ment|ing|s)?\b/i,
+  /\bcure[sd]?\b/i,
+  /\bprescri/i,
+  /\babnormal/i,
+  /\bconcerning/i,
+  /\bdangerous/i,
+  /\balarming/i,
+];
+
+/** Hard safety ceilings from thermal.ts — duplicated here as a server-side safety net. */
+const ABSOLUTE_LIMITS = {
+  sauna: { maxTempC: 110, maxDurationMin: 30 },
+  cold_plunge: { maxDurationMin: 15 },
+};
+
+/** Redact sentences in a text string that contain blocked terms. */
+function redactBlockedClaims(text: string): string {
+  if (!text) return text;
+  // Split into sentences, filter out any containing blocked terms
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  const clean = sentences.filter(
+    (s) => !BLOCKED_TERM_PATTERNS.some((p) => p.test(s)),
+  );
+  return clean.join(" ").trim() || text; // fall back to original if everything gets filtered
+}
+
+/**
+ * Govern a full analysis response — redact blocked claims from all text fields.
+ * Mutates the analysis object in place.
+ */
+function governAnalysis(analysis: Record<string, unknown>): void {
+  if (typeof analysis.summary === "string") {
+    analysis.summary = redactBlockedClaims(analysis.summary);
+  }
+
+  if (Array.isArray(analysis.insights)) {
+    for (const insight of analysis.insights) {
+      if (typeof insight === "object" && insight !== null) {
+        const ins = insight as Record<string, unknown>;
+        if (typeof ins.body === "string") {
+          ins.body = redactBlockedClaims(ins.body);
+        }
+        if (typeof ins.title === "string") {
+          ins.title = redactBlockedClaims(ins.title);
+        }
+      }
+    }
+  }
+
+  if (typeof analysis.pattern === "string") {
+    analysis.pattern = redactBlockedClaims(analysis.pattern);
+  }
+  if (typeof analysis.suggestion === "string") {
+    analysis.suggestion = redactBlockedClaims(analysis.suggestion);
+  }
+}
+
+/** Extract the first number from a string like "25 min" or "12-15 min". Returns the max. */
+function extractMaxMinutes(s: string): number | null {
+  const nums = [...s.matchAll(/(\d+(?:\.\d+)?)/g)].map((m) => parseFloat(m[1]));
+  return nums.length > 0 ? Math.max(...nums) : null;
+}
+
+/** Extract max temperature in °C from strings like "78-82°C" or "172-180°F". */
+function extractMaxTempC(s: string): number | null {
+  // Try Celsius first
+  const cMatch = [...s.matchAll(/(\d+(?:\.\d+)?)\s*°?\s*C/gi)].map((m) => parseFloat(m[1]));
+  if (cMatch.length > 0) return Math.max(...cMatch);
+  // Try Fahrenheit, convert
+  const fMatch = [...s.matchAll(/(\d+(?:\.\d+)?)\s*°?\s*F/gi)].map((m) => parseFloat(m[1]));
+  if (fMatch.length > 0) return Math.round((Math.max(...fMatch) - 32) * 5 / 9);
+  return null;
+}
+
+/**
+ * Govern a protocol response — redact blocked claims and clamp durations/temps.
+ * Mutates the protocol object in place.
+ */
+function governProtocol(protocol: Record<string, unknown>): void {
+  // Redact text fields
+  if (typeof protocol.overview === "string") {
+    protocol.overview = redactBlockedClaims(protocol.overview);
+  }
+  if (typeof protocol.safetyNotes === "string") {
+    protocol.safetyNotes = redactBlockedClaims(protocol.safetyNotes);
+  }
+  if (typeof protocol.notes === "string") {
+    protocol.notes = redactBlockedClaims(protocol.notes);
+  }
+  if (typeof protocol.adaptationSignal === "string") {
+    protocol.adaptationSignal = redactBlockedClaims(protocol.adaptationSignal);
+  }
+  if (typeof protocol.progressMarker === "string") {
+    protocol.progressMarker = redactBlockedClaims(protocol.progressMarker);
+  }
+
+  // Determine modality limits
+  const pType = protocol.protocolType as string;
+  const isContrast = pType === "contrast";
+  const saunaLimits = ABSOLUTE_LIMITS.sauna;
+  const coldLimits = ABSOLUTE_LIMITS.cold_plunge;
+
+  // Check each week
+  if (Array.isArray(protocol.weeks)) {
+    for (const week of protocol.weeks) {
+      if (typeof week !== "object" || week === null) continue;
+      const w = week as Record<string, unknown>;
+      const sessions = w.sessions as Record<string, unknown> | undefined;
+      if (!sessions) continue;
+
+      // Redact notes
+      if (typeof sessions.notes === "string") {
+        sessions.notes = redactBlockedClaims(sessions.notes);
+      }
+      if (typeof w.benchmark === "string") {
+        w.benchmark = redactBlockedClaims(w.benchmark);
+      }
+
+      // Duration safety clamp
+      if (typeof sessions.duration === "string") {
+        const maxMin = extractMaxMinutes(sessions.duration);
+        if (maxMin !== null) {
+          const limit = (pType === "cold_plunge") ? coldLimits.maxDurationMin : saunaLimits.maxDurationMin;
+          if (maxMin > limit) {
+            sessions.duration = `${limit} min (capped at safety limit)`;
+            console.warn(`[govern] Clamped duration from ${maxMin} to ${limit} min`);
+          }
+        }
+      }
+
+      // Temperature safety clamp (sauna and contrast only)
+      if (typeof sessions.temperature === "string" && (pType === "sauna" || isContrast)) {
+        const maxC = extractMaxTempC(sessions.temperature);
+        if (maxC !== null && maxC > saunaLimits.maxTempC) {
+          sessions.temperature = `${saunaLimits.maxTempC}°C (${Math.round(saunaLimits.maxTempC * 9 / 5 + 32)}°F) — capped at safety limit`;
+          console.warn(`[govern] Clamped temperature from ${maxC}°C to ${saunaLimits.maxTempC}°C`);
+        }
+      }
+    }
+  }
+}
+
 // ── Main handler ───────────────────────────────────────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -425,6 +582,9 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "protocol_unavailable", message: "AI response was malformed." }, 503, req);
       }
 
+      // ── Governance gate ──────────────────────────────────
+      governProtocol(protocol as Record<string, unknown>);
+
       protocol.generatedAt = new Date().toISOString();
       return jsonResponse({ protocol }, 200, req);
     }
@@ -535,6 +695,9 @@ Deno.serve(async (req) => {
       console.error("AI response missing required fields");
       return jsonResponse({ error: "analysis_unavailable", message: "AI response was malformed." }, 503, req);
     }
+
+    // ── Governance gate ──────────────────────────────────
+    governAnalysis(analysis as Record<string, unknown>);
 
     // Add timestamp
     (analysis as Record<string, unknown>).generatedAt = new Date().toISOString();
