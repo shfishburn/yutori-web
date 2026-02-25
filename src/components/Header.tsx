@@ -4,6 +4,7 @@ import { BRAND, NAV } from '../content/common';
 import { useCart } from '../lib/cart';
 import { useAuth } from '../lib/auth';
 import { Icon } from './Icon';
+import { UserMenu } from './UserMenu';
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -51,41 +52,7 @@ export function Header() {
         {/* Desktop CTA */}
         <div className="hidden items-center gap-3 sm:flex">
           {user ? (
-            <>
-              <Link
-                to="/dashboard"
-                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
-              >
-                {NAV.dashboard}
-              </Link>
-              <Link
-                to="/insights"
-                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
-              >
-                {NAV.insights}
-              </Link>
-              <Link
-                to="/protocol"
-                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
-              >
-                {NAV.protocol}
-              </Link>
-              <Link
-                to="/account"
-                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
-              >
-                {NAV.account}
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  void signOut().then(() => navigate({ to: '/auth', search: { mode: 'signin' } }));
-                }}
-                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
-              >
-                {NAV.signOut}
-              </button>
-            </>
+            <UserMenu />
           ) : (
             <>
               <Link

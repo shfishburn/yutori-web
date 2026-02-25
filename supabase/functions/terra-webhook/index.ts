@@ -163,7 +163,19 @@ Deno.serve(async (req) => {
               recorded_at: new Date(ts).toISOString(),
             };
           })
-          .filter((row): row is NonNullable<typeof row> => row !== null);
+          .filter((row: {
+            user_id: string;
+            heart_rate: number;
+            hrv: number | null;
+            source: string;
+            recorded_at: string;
+          } | null): row is {
+            user_id: string;
+            heart_rate: number;
+            hrv: number | null;
+            source: string;
+            recorded_at: string;
+          } => row !== null);
 
         if (healthRows.length > 0) {
           const { error } = await supabase

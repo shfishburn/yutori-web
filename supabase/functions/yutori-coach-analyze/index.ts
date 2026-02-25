@@ -47,6 +47,28 @@ type Database = {
         };
         Relationships: [];
       };
+      coach_protocols: {
+        Row: {
+          id: string;
+          user_id: string;
+          protocol_type: string;
+          title: string;
+          schedule: Json;
+          narrative: Json;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          protocol_type: string;
+          title: string;
+          schedule: Json;
+          narrative: Json;
+          created_at?: string;
+          id?: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -120,6 +142,15 @@ function sanitizeNumber(value: unknown, min: number, max: number): number | null
   if (typeof value !== "number" || !isFinite(value)) return null;
   if (value < min || value > max) return null;
   return value;
+}
+
+type ProtocolRequestType = "sauna" | "cold_plunge" | "contrast";
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return {};
 }
 
 /** Authenticate request and return user ID, or null on failure.
@@ -364,20 +395,20 @@ Deno.serve(async (req) => {
 
     // ── Per-session mode (lightweight) ─────────────────────────
     if (mode === "session") {
-      const sessionData = body.sessionData;
-      if (!sessionData) {
+      if (!body.sessionData || typeof body.sessionData !== "object" || Array.isArray(body.sessionData)) {
         return jsonResponse({ error: "sessionData required for mode=session" }, 400, req);
       }
+      const sessionData = body.sessionData as Record<string, unknown>;
 
       // Sanitize session data — only allow expected numeric/string values
-      const safeType = sessionData.sessionType === "cold_plunge" ? "cold_plunge" : "sauna";
-      const safeDuration = sanitizeNumber(sessionData.durationMinutes, 0, 600) ?? "N/A";
-      let safePeakTemp = sanitizeNumber(sessionData.peakTempF, -50, 300);
-      let safeMinTemp = sanitizeNumber(sessionData.minTempF, -50, 300);
-      const safePeakHR = sanitizeNumber(sessionData.peakHR, 20, 300);
-      const safeHRVTrend = sanitizeNumber(sessionData.hrvTrend, -500, 500);
-      const safeSamples = sanitizeNumber(sessionData.sampleCount, 0, 100000) ?? 0;
-      const safeAvgHumidity = sanitizeNumber(sessionData.avgHumidityPct, 0, 100);
+      const safeType = sessionData["sessionType"] === "cold_plunge" ? "cold_plunge" : "sauna";
+      const safeDuration = sanitizeNumber(sessionData["durationMinutes"], 0, 600) ?? "N/A";
+      let safePeakTemp = sanitizeNumber(sessionData["peakTempF"], -50, 300);
+      let safeMinTemp = sanitizeNumber(sessionData["minTempF"], -50, 300);
+      const safePeakHR = sanitizeNumber(sessionData["peakHR"], 20, 300);
+      const safeHRVTrend = sanitizeNumber(sessionData["hrvTrend"], -500, 500);
+      const safeSamples = sanitizeNumber(sessionData["sampleCount"], 0, 100000) ?? 0;
+      const safeAvgHumidity = sanitizeNumber(sessionData["avgHumidityPct"], 0, 100);
 
       // Cross-field validation: minTemp must be ≤ peakTemp
       if (safePeakTemp != null && safeMinTemp != null && safeMinTemp > safePeakTemp) {
@@ -415,13 +446,13 @@ Deno.serve(async (req) => {
 
     // ── Welcome mode (new user greeting) ───────────────────────
     if (mode === "welcome") {
-      const profile = body.userProfile ?? {};
+      const profile = asRecord(body.userProfile);
       const profileLines: string[] = [];
 
-      const safeGender = sanitizeGender(profile.gender);
-      const safeAge = sanitizeNumber(profile.age, 1, 120);
-      const safeWeight = sanitizeNumber(profile.weightKg, 20, 500);
-      const safeHeight = sanitizeNumber(profile.heightCm, 50, 300);
+      const safeGender = sanitizeGender(profile["gender"]);
+      const safeAge = sanitizeNumber(profile["age"], 1, 120);
+      const safeWeight = sanitizeNumber(profile["weightKg"], 20, 500);
+      const safeHeight = sanitizeNumber(profile["heightCm"], 50, 300);
 
       if (safeGender) profileLines.push(`Gender: ${safeGender}`);
       if (safeAge) profileLines.push(`Age: ${safeAge}`);
@@ -462,23 +493,27 @@ Deno.serve(async (req) => {
 
     // ── Protocol mode (personalized protocol generation) ───────
     if (mode === "protocol") {
-      const protocolType = body.protocolType;
-      if (!protocolType || !["sauna", "cold_plunge", "contrast"].includes(protocolType)) {
+      const rawProtocolType = body.protocolType;
+      const protocolType: ProtocolRequestType | null =
+        rawProtocolType === "sauna" || rawProtocolType === "cold_plunge" || rawProtocolType === "contrast"
+          ? rawProtocolType
+          : null;
+      if (!protocolType) {
         return jsonResponse({ error: "protocolType must be 'sauna', 'cold_plunge', or 'contrast'" }, 400, req);
       }
 
-      const sessionData = body.sessionData ?? {};
-      const profile = body.userProfile ?? {};
+      const sessionData = asRecord(body.sessionData);
+      const profile = asRecord(body.userProfile);
 
       // Build user context string from session data
       const contextLines: string[] = [];
       contextLines.push(`Protocol type requested: ${protocolType}`);
-      contextLines.push(`Total sessions: ${sanitizeNumber(sessionData.totalSessions, 0, 10000) ?? 0}`);
+      contextLines.push(`Total sessions: ${sanitizeNumber(sessionData["totalSessions"], 0, 10000) ?? 0}`);
 
-      const safeGender = sanitizeGender(profile.gender);
-      const safeAge = sanitizeNumber(profile.age, 1, 120);
-      const safeWeight = sanitizeNumber(profile.weightKg, 20, 500);
-      const safeHeight = sanitizeNumber(profile.heightCm, 50, 300);
+      const safeGender = sanitizeGender(profile["gender"]);
+      const safeAge = sanitizeNumber(profile["age"], 1, 120);
+      const safeWeight = sanitizeNumber(profile["weightKg"], 20, 500);
+      const safeHeight = sanitizeNumber(profile["heightCm"], 50, 300);
 
       if (safeGender) contextLines.push(`Gender: ${safeGender}`);
       if (safeAge) contextLines.push(`Age: ${safeAge}`);
@@ -486,33 +521,44 @@ Deno.serve(async (req) => {
       if (safeHeight) contextLines.push(`Height: ${safeHeight} cm`);
 
       // Sauna stats
-      if (sessionData.saunaSessions) {
-        const s = sessionData.saunaSessions;
-        contextLines.push(`\nSauna sessions: ${sanitizeNumber(s.count, 0, 10000) ?? 0}`);
-        if (s.avgDurationMinutes) contextLines.push(`  Avg duration: ${sanitizeNumber(s.avgDurationMinutes, 0, 120) ?? "N/A"} min`);
-        if (s.avgPeakTempF) contextLines.push(`  Avg peak temp: ${sanitizeNumber(s.avgPeakTempF, 50, 300) ?? "N/A"}°F`);
-        if (s.avgPeakHR) contextLines.push(`  Avg peak HR: ${sanitizeNumber(s.avgPeakHR, 30, 250) ?? "N/A"} BPM`);
+      const saunaSessions = asRecord(sessionData["saunaSessions"]);
+      if (Object.keys(saunaSessions).length > 0) {
+        contextLines.push(`\nSauna sessions: ${sanitizeNumber(saunaSessions["count"], 0, 10000) ?? 0}`);
+        const saunaAvgDuration = sanitizeNumber(saunaSessions["avgDurationMinutes"], 0, 120);
+        const saunaAvgPeakTemp = sanitizeNumber(saunaSessions["avgPeakTempF"], 50, 300);
+        const saunaAvgPeakHr = sanitizeNumber(saunaSessions["avgPeakHR"], 30, 250);
+        if (saunaAvgDuration != null) contextLines.push(`  Avg duration: ${saunaAvgDuration} min`);
+        if (saunaAvgPeakTemp != null) contextLines.push(`  Avg peak temp: ${saunaAvgPeakTemp}°F`);
+        if (saunaAvgPeakHr != null) contextLines.push(`  Avg peak HR: ${saunaAvgPeakHr} BPM`);
       }
 
       // Cold stats
-      if (sessionData.coldPlungeSessions) {
-        const c = sessionData.coldPlungeSessions;
-        contextLines.push(`\nCold plunge sessions: ${sanitizeNumber(c.count, 0, 10000) ?? 0}`);
-        if (c.avgDurationMinutes) contextLines.push(`  Avg duration: ${sanitizeNumber(c.avgDurationMinutes, 0, 60) ?? "N/A"} min`);
-        if (c.avgWaterTempF) contextLines.push(`  Avg water temp: ${sanitizeNumber(c.avgWaterTempF, 20, 100) ?? "N/A"}°F`);
-        if (c.avgPeakHR) contextLines.push(`  Avg peak HR: ${sanitizeNumber(c.avgPeakHR, 30, 250) ?? "N/A"} BPM`);
+      const coldPlungeSessions = asRecord(sessionData["coldPlungeSessions"]);
+      if (Object.keys(coldPlungeSessions).length > 0) {
+        contextLines.push(`\nCold plunge sessions: ${sanitizeNumber(coldPlungeSessions["count"], 0, 10000) ?? 0}`);
+        const coldAvgDuration = sanitizeNumber(coldPlungeSessions["avgDurationMinutes"], 0, 60);
+        const coldAvgWaterTemp = sanitizeNumber(coldPlungeSessions["avgWaterTempF"], 20, 100);
+        const coldAvgPeakHr = sanitizeNumber(coldPlungeSessions["avgPeakHR"], 30, 250);
+        if (coldAvgDuration != null) contextLines.push(`  Avg duration: ${coldAvgDuration} min`);
+        if (coldAvgWaterTemp != null) contextLines.push(`  Avg water temp: ${coldAvgWaterTemp}°F`);
+        if (coldAvgPeakHr != null) contextLines.push(`  Avg peak HR: ${coldAvgPeakHr} BPM`);
       }
 
       // Zones
-      if (sessionData.saunaZone) contextLines.push(`Most common sauna zone: ${sanitizeString(sessionData.saunaZone, 20)}`);
-      if (sessionData.coldZone) contextLines.push(`Most common cold zone: ${sanitizeString(sessionData.coldZone, 20)}`);
+      const saunaZone = sanitizeString(sessionData["saunaZone"], 20);
+      const coldZone = sanitizeString(sessionData["coldZone"], 20);
+      if (saunaZone) contextLines.push(`Most common sauna zone: ${saunaZone}`);
+      if (coldZone) contextLines.push(`Most common cold zone: ${coldZone}`);
 
       // Frequency
-      if (sessionData.frequency) {
-        const f = sessionData.frequency;
-        if (f.sessionsPerWeek) contextLines.push(`\nFrequency: ${sanitizeNumber(f.sessionsPerWeek, 0, 50) ?? "N/A"} sessions/week`);
-        if (f.mostCommonDayOfWeek) contextLines.push(`  Most common day: ${sanitizeString(f.mostCommonDayOfWeek, 15)}`);
-        if (f.mostCommonTimeOfDay) contextLines.push(`  Most common time: ${sanitizeString(f.mostCommonTimeOfDay, 15)}`);
+      const frequency = asRecord(sessionData["frequency"]);
+      if (Object.keys(frequency).length > 0) {
+        const sessionsPerWeek = sanitizeNumber(frequency["sessionsPerWeek"], 0, 50);
+        const mostCommonDay = sanitizeString(frequency["mostCommonDayOfWeek"], 15);
+        const mostCommonTime = sanitizeString(frequency["mostCommonTimeOfDay"], 15);
+        if (sessionsPerWeek != null) contextLines.push(`\nFrequency: ${sessionsPerWeek} sessions/week`);
+        if (mostCommonDay) contextLines.push(`  Most common day: ${mostCommonDay}`);
+        if (mostCommonTime) contextLines.push(`  Most common time: ${mostCommonTime}`);
       }
 
       const aiResp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
