@@ -59,6 +59,18 @@ export function Header() {
                 {NAV.dashboard}
               </Link>
               <Link
+                to="/insights"
+                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.insights}
+              </Link>
+              <Link
+                to="/protocol"
+                className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.protocol}
+              </Link>
+              <Link
                 to="/account"
                 className="rounded-lg border border-edge px-3 py-2 text-sm font-semibold text-fg-muted transition-colors hover:bg-surface hover:text-fg"
               >
@@ -175,6 +187,20 @@ export function Header() {
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
               >
                 {NAV.dashboard}
+              </Link>
+              <Link
+                to="/insights"
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
+              >
+                {NAV.insights}
+              </Link>
+              <Link
+                to="/protocol"
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
+              >
+                {NAV.protocol}
               </Link>
               <Link
                 to="/account"

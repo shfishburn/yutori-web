@@ -379,6 +379,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Magic link callback: detect #access_token=...&refresh_token=... in hash
+      if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+        try {
+          const hashParams = new URLSearchParams(window.location.hash.slice(1));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          const expiresIn = hashParams.get('expires_in');
+
+          if (accessToken && refreshToken) {
+            const user = await fetchUser(env, accessToken);
+            const expiresAt = expiresIn
+              ? Math.floor(Date.now() / 1000) + Number(expiresIn)
+              : Math.floor(Date.now() / 1000) + 3600;
+
+            const hashSession: AuthSession = {
+              accessToken,
+              refreshToken,
+              expiresAt,
+              user,
+            };
+
+            if (!cancelled) {
+              persistSession(hashSession);
+              setAuthError(null);
+              // Clear hash from URL to prevent re-processing on refresh
+              window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname + window.location.search,
+              );
+            }
+          }
+        } catch (err) {
+          console.warn('[auth] Magic link callback failed:', err);
+          // Fall through to normal bootstrap
+        } finally {
+          if (!cancelled) {
+            setLoading(false);
+          }
+        }
+        return;
+      }
+
       const stored = readStoredSession();
       if (!stored) {
         setLoading(false);

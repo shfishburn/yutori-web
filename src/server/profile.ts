@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import type { UnitSystem } from '../lib/units';
+import { getSupabaseEnv, verifySupabaseToken } from './supabase';
 
 /* ── Types ─────────────────────────────────────────────────────── */
 
@@ -28,48 +29,6 @@ type SupabaseProfileRow = {
   rlt_panel: Record<string, NonNullable<unknown>> | null;
   unit_preference: string | null;
 };
-
-/* ── Env helpers (shared with sessions.ts) ─────────────────────── */
-
-function cleanEnvValue(value: string | undefined): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.replace(/\r?\n/g, '').replace(/\\n/g, '').trim();
-  if (trimmed.length === 0) return undefined;
-  const m = trimmed.match(/^(['"])(.*)\1$/);
-  return m ? (m[2]?.trim() || undefined) : trimmed;
-}
-
-function getSupabaseEnv() {
-  const url = cleanEnvValue(process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL)?.replace(
-    /\/+$/g,
-    '',
-  );
-  const anonKey = cleanEnvValue(
-    process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY,
-  );
-  if (!url || !anonKey) {
-    throw new Error('Missing Supabase env vars: SUPABASE_URL and SUPABASE_ANON_KEY');
-  }
-  return { url, anonKey };
-}
-
-async function verifySupabaseToken(accessToken: string): Promise<{ id: string }> {
-  const env = getSupabaseEnv();
-  const response = await fetch(`${env.url}/auth/v1/user`, {
-    headers: {
-      apikey: env.anonKey,
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  const json = (await response.json().catch(() => null)) as
-    | { id?: string; msg?: string }
-    | null;
-  if (!response.ok || !json?.id) {
-    const message = json?.msg ? String(json.msg) : `Token verification failed (${response.status})`;
-    throw new Error(message);
-  }
-  return { id: json.id };
-}
 
 /* ── Helpers ───────────────────────────────────────────────────── */
 

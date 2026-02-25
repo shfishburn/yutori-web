@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ShowerRouteImport } from './routes/shower'
 import { Route as SaunaRouteImport } from './routes/sauna'
+import { Route as ProtocolRouteImport } from './routes/protocol'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PlungeRouteImport } from './routes/plunge'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -40,6 +42,11 @@ const SaunaRoute = SaunaRouteImport.update({
   path: '/sauna',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtocolRoute = ProtocolRouteImport.update({
+  id: '/protocol',
+  path: '/protocol',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -48,6 +55,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PlungeRoute = PlungeRouteImport.update({
   id: '/plunge',
   path: '/plunge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -107,8 +119,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/dashboard': typeof DashboardRoute
+  '/insights': typeof InsightsRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
+  '/protocol': typeof ProtocolRoute
   '/sauna': typeof SaunaRoute
   '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
@@ -124,8 +138,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/dashboard': typeof DashboardRoute
+  '/insights': typeof InsightsRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
+  '/protocol': typeof ProtocolRoute
   '/sauna': typeof SaunaRoute
   '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
@@ -142,8 +158,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/dashboard': typeof DashboardRoute
+  '/insights': typeof InsightsRoute
   '/plunge': typeof PlungeRoute
   '/privacy': typeof PrivacyRoute
+  '/protocol': typeof ProtocolRoute
   '/sauna': typeof SaunaRoute
   '/shower': typeof ShowerRoute
   '/terms': typeof TermsRoute
@@ -161,8 +179,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/dashboard'
+    | '/insights'
     | '/plunge'
     | '/privacy'
+    | '/protocol'
     | '/sauna'
     | '/shower'
     | '/terms'
@@ -178,8 +198,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/dashboard'
+    | '/insights'
     | '/plunge'
     | '/privacy'
+    | '/protocol'
     | '/sauna'
     | '/shower'
     | '/terms'
@@ -195,8 +217,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/dashboard'
+    | '/insights'
     | '/plunge'
     | '/privacy'
+    | '/protocol'
     | '/sauna'
     | '/shower'
     | '/terms'
@@ -213,8 +237,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   DashboardRoute: typeof DashboardRoute
+  InsightsRoute: typeof InsightsRoute
   PlungeRoute: typeof PlungeRoute
   PrivacyRoute: typeof PrivacyRoute
+  ProtocolRoute: typeof ProtocolRoute
   SaunaRoute: typeof SaunaRoute
   ShowerRoute: typeof ShowerRoute
   TermsRoute: typeof TermsRoute
@@ -248,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SaunaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/protocol': {
+      id: '/protocol'
+      path: '/protocol'
+      fullPath: '/protocol'
+      preLoaderRoute: typeof ProtocolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -260,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/plunge'
       fullPath: '/plunge'
       preLoaderRoute: typeof PlungeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -341,8 +381,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   DashboardRoute: DashboardRoute,
+  InsightsRoute: InsightsRoute,
   PlungeRoute: PlungeRoute,
   PrivacyRoute: PrivacyRoute,
+  ProtocolRoute: ProtocolRoute,
   SaunaRoute: SaunaRoute,
   ShowerRoute: ShowerRoute,
   TermsRoute: TermsRoute,
@@ -355,3 +397,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

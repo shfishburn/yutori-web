@@ -15,6 +15,8 @@ export const NAV = {
   sensors: 'Sensors',
   products: 'Products',
   dashboard: 'Dashboard',
+  insights: 'Insights',
+  protocol: 'Protocol',
   account: 'Account',
   signIn: 'Sign in',
   signUp: 'Sign up',

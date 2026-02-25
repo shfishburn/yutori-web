@@ -586,6 +586,56 @@ Deno.serve(async (req) => {
       governProtocol(protocol as Record<string, unknown>);
 
       protocol.generatedAt = new Date().toISOString();
+
+      // ── Persist to coach_protocols (fire-and-forget) ─────
+      // Split the protocol into deterministic schedule vs AI narrative
+      // so mobile reads only schedule, web reads both.
+      const supabaseUrlP = Deno.env.get("SUPABASE_URL") ?? "";
+      const serviceKeyP = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+      if (supabaseUrlP && serviceKeyP) {
+        const sbProto = createClient<Database>(supabaseUrlP, serviceKeyP);
+        const weeks = Array.isArray(protocol.weeks) ? protocol.weeks : [];
+
+        const scheduleWeeks = weeks.map((w: Record<string, unknown>, idx: number) => {
+          const sess = (w.sessions ?? {}) as Record<string, unknown>;
+          return {
+            weekNumber: typeof w.weekNumber === "number" ? w.weekNumber : idx + 1,
+            focus: typeof w.focus === "string" ? w.focus : "",
+            frequency: typeof sess.frequency === "string" ? sess.frequency : "",
+            duration: typeof sess.duration === "string" ? sess.duration : "",
+            temperature: typeof sess.temperature === "string" ? sess.temperature : "",
+          };
+        });
+
+        const weeklyNotes = weeks.map((w: Record<string, unknown>) => {
+          const sess = (w.sessions ?? {}) as Record<string, unknown>;
+          return typeof sess.notes === "string" ? sess.notes : "";
+        });
+
+        const weeklyBenchmarks = weeks.map((w: Record<string, unknown>) =>
+          typeof w.benchmark === "string" ? w.benchmark : ""
+        );
+
+        const narrativeObj = {
+          overview: typeof protocol.overview === "string" ? protocol.overview : "",
+          notes: typeof protocol.notes === "string" ? protocol.notes : (typeof protocol.safetyNotes === "string" ? protocol.safetyNotes : ""),
+          progressMarker: typeof protocol.progressMarker === "string" ? protocol.progressMarker : (typeof protocol.adaptationSignal === "string" ? protocol.adaptationSignal : ""),
+          weeklyNotes,
+          weeklyBenchmarks,
+        };
+
+        sbProto.from("coach_protocols").insert({
+          user_id: userId,
+          protocol_type: protocolType as string,
+          title: typeof protocol.title === "string" ? protocol.title : "Protocol",
+          schedule: scheduleWeeks,
+          narrative: narrativeObj,
+        }).then(({ error: insErr }) => {
+          if (insErr) console.warn("[protocol-cache] insert failed:", insErr.message);
+          else console.log("[protocol-cache] saved for user", userId);
+        });
+      }
+
       return jsonResponse({ protocol }, 200, req);
     }
 

@@ -1,9 +1,10 @@
 import { createServerFn } from '@tanstack/react-start';
-
-type SupabaseEnv = {
-  url: string;
-  anonKey: string;
-};
+import {
+  getSupabaseEnv,
+  verifySupabaseToken,
+  buildQueryString,
+  isMissingTableResponse,
+} from './supabase';
 
 const COMPLETED_SESSION_MIN_DURATION_MS = 60_000;
 const COMPLETED_SESSION_MAX_DURATION_MS = 21_600_000;
@@ -53,50 +54,6 @@ export type GamificationSnapshot = {
   achievements: AchievementSummary[];
 };
 
-/* ── Env helpers ───────────────────────────────────────────────── */
-
-function cleanEnvValue(value: string | undefined): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.replace(/\r?\n/g, '').replace(/\\n/g, '').trim();
-  if (trimmed.length === 0) return undefined;
-  const m = trimmed.match(/^(['"])(.*)\1$/);
-  return m ? (m[2]?.trim() || undefined) : trimmed;
-}
-
-function getSupabaseEnv(): SupabaseEnv {
-  const url = cleanEnvValue(process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL)?.replace(
-    /\/+$/g,
-    '',
-  );
-  const anonKey = cleanEnvValue(
-    process.env.SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY,
-  );
-  if (!url || !anonKey) {
-    throw new Error('Missing Supabase env vars: SUPABASE_URL and SUPABASE_ANON_KEY');
-  }
-  return { url, anonKey };
-}
-
-/* ── Token verification ────────────────────────────────────────── */
-
-async function verifySupabaseToken(accessToken: string): Promise<{ id: string; email: string | null }> {
-  const env = getSupabaseEnv();
-  const response = await fetch(`${env.url}/auth/v1/user`, {
-    headers: {
-      apikey: env.anonKey,
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  const json = (await response.json().catch(() => null)) as
-    | { id?: string; email?: string | null; msg?: string }
-    | null;
-  if (!response.ok || !json?.id) {
-    const message = json?.msg ? String(json.msg) : `Token verification failed (${response.status})`;
-    throw new Error(message);
-  }
-  return { id: json.id, email: typeof json.email === 'string' ? json.email : null };
-}
-
 /* ── Supabase REST query ───────────────────────────────────────── */
 
 type SupabaseSessionRow = {
@@ -143,23 +100,6 @@ type FetchUserSessionsOptions = {
   completedOnly?: boolean;
 };
 
-type QueryValue = string | number | boolean;
-
-function buildQueryString(query: Record<string, QueryValue | QueryValue[] | undefined>): string {
-  const params = new URLSearchParams();
-  for (const [key, rawValue] of Object.entries(query)) {
-    if (rawValue === undefined) continue;
-    if (Array.isArray(rawValue)) {
-      for (const value of rawValue) {
-        params.append(key, String(value));
-      }
-      continue;
-    }
-    params.set(key, String(rawValue));
-  }
-  return params.toString();
-}
-
 async function fetchUserSessions(
   accessToken: string,
   limit: number,
@@ -168,7 +108,7 @@ async function fetchUserSessions(
 ): Promise<SupabaseSessionRow[]> {
   const env = getSupabaseEnv();
 
-  const query: Record<string, QueryValue | QueryValue[] | undefined> = {
+  const query: Record<string, string | number | boolean | (string | number | boolean)[] | undefined> = {
     select: SESSION_SELECT_FIELDS,
     order: 'started_at.desc',
     limit,
@@ -273,21 +213,6 @@ type SupabaseAchievementRow = {
   earned_at: string | null;
   meta: unknown;
 };
-
-type SupabaseErrorPayload = {
-  code?: string;
-};
-
-function parseSupabaseErrorCode(payload: unknown): string | null {
-  if (!payload || typeof payload !== 'object') return null;
-  const code = (payload as SupabaseErrorPayload).code;
-  return typeof code === 'string' ? code : null;
-}
-
-function isMissingTableResponse(status: number, payload: unknown): boolean {
-  const code = parseSupabaseErrorCode(payload);
-  return status === 404 || code === '42P01';
-}
 
 function parseNonNegativeInt(value: number | null | undefined, fallback: number): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
