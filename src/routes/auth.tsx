@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { buildSeoHead } from '../lib/seo';
 import { useAuth } from '../lib/auth';
 
@@ -215,7 +215,9 @@ function AuthPage() {
     setSubmitting(true);
     try {
       if (isSignUp) {
-        const result = await signUp(trimmedEmail, password);
+        const result = await signUp(trimmedEmail, password, {
+          terms_accepted_at: new Date().toISOString(),
+        });
         if (result.requiresEmailConfirmation) {
           setNotice('Check your email to confirm your account, then sign in.');
           return;
@@ -361,6 +363,20 @@ function AuthPage() {
                   </button>
                 </div>
               </label>
+            ) : null}
+
+            {isSignUp ? (
+              <p className="text-sm text-fg-muted">
+                {"By creating an account, you agree to our "}
+                <Link to="/terms" className="font-medium text-fg underline underline-offset-4 hover:text-accent">
+                  Terms of Service
+                </Link>
+                {" and "}
+                <Link to="/privacy" className="font-medium text-fg underline underline-offset-4 hover:text-accent">
+                  Privacy Policy
+                </Link>
+                {"."}
+              </p>
             ) : null}
 
             {isResetMode ? (

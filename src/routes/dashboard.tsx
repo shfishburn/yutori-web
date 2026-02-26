@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useCallback, useEffect, useState } from 'react';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Icon } from '../components/Icon';
 import { ProfileEditor } from '../components/ProfileEditor';
 import { SegmentedControl, type Segment } from '../components/SegmentedControl';
@@ -7,7 +7,7 @@ import { SessionCard, formatDuration } from '../components/SessionCard';
 import { useAuth } from '../lib/auth';
 import { buildSeoHead } from '../lib/seo';
 import { tempValue, tempUnit, type UnitSystem } from '../lib/units';
-import { getDashboardStats, type DashboardStats, type TempDataPoint, type HealthDataPoint } from '../server/sessions';
+import { getDashboardStats, getSessionHistory, type DashboardStats, type TempDataPoint, type HealthDataPoint, type SessionSummary } from '../server/sessions';
 import { getProfile } from '../server/profile';
 import { DASHBOARD } from '../content/dashboard';
 
@@ -501,14 +501,24 @@ function Achievements({ stats }: { stats: DashboardStats }) {
 
 /* ── Segments ───────────────────────────────────────────────────── */
 
-type Tab = 'overview' | 'health' | 'progress' | 'profile';
+type Tab = 'overview' | 'health' | 'history' | 'progress' | 'profile';
 
 const TABS: Segment<Tab>[] = [
   { key: 'overview', label: DASHBOARD.segmentOverview },
   { key: 'health', label: DASHBOARD.segmentHealth },
+  { key: 'history', label: DASHBOARD.segmentHistory },
   { key: 'progress', label: DASHBOARD.segmentProgress },
   { key: 'profile', label: DASHBOARD.segmentProfile },
 ];
+
+const VALID_TABS = new Set<string>(TABS.map((t) => t.key));
+
+function getTabFromHash(): Tab {
+  const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
+  return VALID_TABS.has(hash) ? (hash as Tab) : 'overview';
+}
+
+const HISTORY_PAGE_SIZE = 50;
 
 /* ── Page ───────────────────────────────────────────────────────── */
 
@@ -518,8 +528,30 @@ function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('overview');
+  const [tab, setTab] = useState<Tab>(getTabFromHash);
   const [units, setUnits] = useState<UnitSystem>('imperial');
+
+  // History tab state
+  const [historySessions, setHistorySessions] = useState<SessionSummary[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyMoreLoading, setHistoryMoreLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyOffset, setHistoryOffset] = useState(0);
+  const [historyHasMore, setHistoryHasMore] = useState(false);
+  const [historyFetched, setHistoryFetched] = useState(false);
+
+  // Sync tab ↔ URL hash
+  const handleTabChange = useCallback((next: Tab) => {
+    setTab(next);
+    window.history.replaceState(null, '', `#${next}`);
+  }, []);
+
+  // Listen for back/forward navigation
+  useEffect(() => {
+    const onHash = () => setTab(getTabFromHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -555,6 +587,52 @@ function DashboardPage() {
     return () => { active = false; };
   }, [session?.accessToken, user]);
 
+  // Lazy-fetch history when the tab is first selected
+  useEffect(() => {
+    if (tab !== 'history' || historyFetched || !session?.accessToken || !user) return;
+
+    let active = true;
+    setHistoryLoading(true);
+    setHistoryError(null);
+
+    getSessionHistory({ data: { accessToken: session.accessToken, limit: HISTORY_PAGE_SIZE, offset: 0 } })
+      .then((data) => {
+        if (!active) return;
+        setHistorySessions(data.sessions);
+        setHistoryOffset(data.sessions.length);
+        setHistoryHasMore(data.sessions.length === HISTORY_PAGE_SIZE);
+        setHistoryFetched(true);
+      })
+      .catch((err: unknown) => {
+        if (active) setHistoryError(err instanceof Error ? err.message : DASHBOARD.historyError);
+      })
+      .finally(() => {
+        if (active) setHistoryLoading(false);
+      });
+
+    return () => { active = false; };
+  }, [tab, historyFetched, session?.accessToken, user]);
+
+  const loadMoreHistory = useCallback(() => {
+    if (!session?.accessToken || !user || historyMoreLoading || !historyHasMore) return;
+
+    setHistoryMoreLoading(true);
+    setHistoryError(null);
+
+    getSessionHistory({ data: { accessToken: session.accessToken, limit: HISTORY_PAGE_SIZE, offset: historyOffset } })
+      .then((data) => {
+        setHistorySessions((prev) => [...prev, ...data.sessions]);
+        setHistoryOffset((prev) => prev + data.sessions.length);
+        setHistoryHasMore(data.sessions.length === HISTORY_PAGE_SIZE);
+      })
+      .catch((err: unknown) => {
+        setHistoryError(err instanceof Error ? err.message : DASHBOARD.historyError);
+      })
+      .finally(() => {
+        setHistoryMoreLoading(false);
+      });
+  }, [historyHasMore, historyMoreLoading, historyOffset, session?.accessToken, user]);
+
   if (authLoading || !user) {
     return (
       <main className="flex-1 bg-canvas">
@@ -581,7 +659,7 @@ function DashboardPage() {
             {DASHBOARD.subtitle}
           </h1>
           <div className="mt-5">
-            <SegmentedControl segments={TABS} selected={tab} onChange={setTab} />
+            <SegmentedControl segments={TABS} selected={tab} onChange={handleTabChange} />
           </div>
         </div>
 
@@ -663,12 +741,13 @@ function DashboardPage() {
             <div className="mt-6 rounded-3xl border border-edge bg-surface p-6 sm:p-8">
               <div className="flex items-baseline justify-between gap-4">
                 <h2 className="text-xl font-bold text-fg">{DASHBOARD.recentHeading}</h2>
-                <Link
-                  to="/account"
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('history')}
                   className="text-sm font-semibold text-fg-muted underline underline-offset-4 transition-colors hover:text-fg"
                 >
                   {DASHBOARD.recentViewAll}
-                </Link>
+                </button>
               </div>
 
               {stats.recentSessions.length === 0 ? (
@@ -697,6 +776,62 @@ function DashboardPage() {
               <HealthMetricsSection stats={stats} />
             </div>
           </>
+        ) : null}
+
+        {/* ── History tab ──────────────────────────────────────── */}
+        {tab === 'history' ? (
+          <div className="mt-6 rounded-3xl border border-edge bg-surface p-6 sm:p-8">
+            <div className="flex items-center gap-2">
+              <Icon name="clock" className="h-5 w-5 text-fg-muted" aria-hidden="true" />
+              <h2 className="text-xl font-bold text-fg">{DASHBOARD.historyHeading}</h2>
+            </div>
+            <p className="mt-2 text-sm text-fg-muted">{DASHBOARD.historyDescription}</p>
+
+            {historyLoading ? (
+              <div className="animate-pulse mt-6 space-y-3">
+                <div className="h-3 w-40 rounded-full bg-edge" />
+                <div className="h-3 w-56 rounded-full bg-edge" />
+                <div className="h-3 w-32 rounded-full bg-edge" />
+              </div>
+            ) : null}
+
+            {historyError ? (
+              <div className="ui-alert-danger mt-6">{historyError}</div>
+            ) : null}
+
+            {!historyLoading && !historyError && historySessions.length === 0 ? (
+              <div className="mt-6 rounded-2xl border border-edge bg-canvas p-5 text-sm text-fg-muted">
+                {DASHBOARD.historyEmpty}
+              </div>
+            ) : null}
+
+            {!historyLoading && !historyError && historySessions.length > 0 ? (
+              <>
+                <div className="mt-6 grid gap-3">
+                  {historySessions.map((s) => (
+                    <SessionCard key={s.id} s={s} />
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs text-fg-subtle">
+                    Showing {historySessions.length} sessions
+                  </p>
+                  {historyHasMore ? (
+                    <button
+                      type="button"
+                      onClick={loadMoreHistory}
+                      disabled={historyMoreLoading}
+                      className="rounded-lg border border-edge px-3 py-1.5 text-sm font-semibold text-fg-muted transition-colors hover:bg-canvas hover:text-fg disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {historyMoreLoading ? 'Loading...' : 'Load more sessions'}
+                    </button>
+                  ) : (
+                    <p className="text-xs text-fg-subtle">You have reached the end of your history.</p>
+                  )}
+                </div>
+              </>
+            ) : null}
+          </div>
         ) : null}
 
         {/* ── Progress tab ─────────────────────────────────────── */}

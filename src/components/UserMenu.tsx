@@ -5,10 +5,11 @@ import { useAuth } from '../lib/auth';
 import { Icon } from './Icon';
 
 const MENU_ITEMS = [
-  { label: NAV.dashboard, to: '/dashboard' as const },
-  { label: NAV.insights, to: '/insights' as const },
-  { label: NAV.protocol, to: '/protocol' as const },
-  { label: NAV.account, to: '/account' as const },
+  { label: NAV.dashboard, to: '/dashboard' as const, hash: undefined },
+  { label: NAV.history, to: '/dashboard' as const, hash: 'history' },
+  { label: NAV.insights, to: '/insights' as const, hash: undefined },
+  { label: NAV.protocol, to: '/protocol' as const, hash: undefined },
+  { label: NAV.account, to: '/account' as const, hash: undefined },
 ];
 
 export function UserMenu() {
@@ -67,8 +68,9 @@ export function UserMenu() {
           {/* Nav links */}
           {MENU_ITEMS.map((item) => (
             <Link
-              key={item.to}
+              key={`${item.to}${item.hash ? `#${item.hash}` : ''}`}
               to={item.to}
+              hash={item.hash}
               onClick={close}
               className="block px-3 py-2 mx-1.5 rounded-lg text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"
             >

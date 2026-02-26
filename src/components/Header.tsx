@@ -156,6 +156,14 @@ export function Header() {
                 {NAV.dashboard}
               </Link>
               <Link
+                to="/dashboard"
+                hash="history"
+                onClick={() => setOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                {NAV.history}
+              </Link>
+              <Link
                 to="/insights"
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-fg-muted transition-colors hover:bg-surface hover:text-fg [&.active]:text-accent"

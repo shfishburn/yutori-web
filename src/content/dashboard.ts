@@ -116,6 +116,13 @@ export const DASHBOARD = {
   profilePresetOther: 'Other Sauna',
   profilePresetOtherBy: 'Custom setup',
 
+  // History tab
+  segmentHistory: 'History',
+  historyHeading: 'Session history',
+  historyDescription: 'Your thermal sessions synced from the mobile app.',
+  historyEmpty: 'No sessions synced yet. Complete a session in the mobile app to see your history here.',
+  historyError: 'Could not load session history.',
+
   // Segment tabs
   segmentOverview: 'Overview',
   segmentHealth: 'Health',

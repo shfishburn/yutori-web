@@ -38,7 +38,7 @@ type AuthContextValue = {
   loading: boolean;
   authError: string | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<SignUpResult>;
+  signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<SignUpResult>;
   requestPasswordReset: (email: string) => Promise<void>;
   updatePasswordWithToken: (accessToken: string, newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -307,16 +307,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signUp = useCallback(
-    async (email: string, password: string): Promise<SignUpResult> => {
+    async (email: string, password: string, metadata?: Record<string, unknown>): Promise<SignUpResult> => {
       if (!env) {
         throw new Error('Auth is not configured for this environment.');
+      }
+      const body: Record<string, unknown> = { email, password };
+      if (metadata) {
+        body.data = metadata;
       }
       const payload = await requestSupabaseJson<unknown>(
         env,
         'auth/v1/signup',
         {
           method: 'POST',
-          body: { email, password },
+          body,
         },
       );
 
