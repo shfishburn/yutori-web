@@ -62,6 +62,13 @@ Design token enforcement check:
 npm run lint:design-tokens
 ```
 
+Supabase types (project sync):
+
+```bash
+npm run supabase:types:gen
+npm run supabase:types:check
+```
+
 ## Styling
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.

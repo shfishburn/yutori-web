@@ -10,7 +10,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint:design-tokens": "node scripts/check-design-tokens.mjs"
+    "lint:design-tokens": "node scripts/check-design-tokens.mjs",
+    "supabase:types:gen": "node scripts/supabase-types.mjs --write",
+    "supabase:types:check": "node scripts/supabase-types.mjs --check"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
