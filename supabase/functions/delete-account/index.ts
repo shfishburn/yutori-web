@@ -30,10 +30,18 @@ function jsonResponse(body: unknown, status = 200, req?: Request): Response {
 }
 
 // ── Tables that store per-user data ──────────────────────────
+// W-3 fix: added all tables containing user data. Ordered so child
+// tables (with foreign-key references) are deleted before parents.
 const USER_DATA_TABLES = [
+  "sensor_samples",
+  "health_samples",
   "telemetry_events",
   "coach_analyses",
-  "health_samples",
+  "coach_protocols",
+  "user_achievements",
+  "sessions",
+  "user_gamification_state",
+  "user_profiles",
 ] as const;
 
 Deno.serve(async (req) => {
@@ -93,12 +101,11 @@ Deno.serve(async (req) => {
     }
   }
 
+  // W2-5 fix: even if some table deletions fail, still proceed to delete
+  // the auth user. Orphaned data rows without an auth user are harmless,
+  // whereas leaving a half-deleted account is worse for the user.
   if (failures.length > 0) {
-    return jsonResponse(
-      { error: "Failed to delete data from: " + failures.join(", ") },
-      500,
-      req,
-    );
+    console.warn(`[delete-account] Partial data deletion — failed tables: ${failures.join(", ")}. Proceeding to delete auth user.`);
   }
 
   // ── Delete the auth user ───────────────────────────────────
@@ -109,6 +116,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Failed to delete account" }, 500, req);
   }
 
-  console.log("[delete-account] Account deleted successfully");
-  return jsonResponse({ success: true }, 200, req);
+  const status = failures.length > 0 ? "partial" : "complete";
+  console.log(`[delete-account] Account deleted (${status})`);
+  return jsonResponse({ success: true, dataFailures: failures }, 200, req);
 });

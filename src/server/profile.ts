@@ -116,6 +116,38 @@ export const getProfile = createServerFn({ method: 'POST' })
     return mapRowToProfile(first);
   });
 
+// W-8 fix: validate individual profile fields server-side before DB write.
+// Previously any object shape was cast to UserProfile without validation,
+// allowing garbage values (negative age, string weight, etc.) into the DB.
+function validateProfile(raw: Record<string, unknown>): UserProfile {
+  const validGenders = new Set(['male', 'female', 'other']);
+  const validSaunaTypes = new Set(['finnish', 'infrared', 'steam']);
+
+  const gender = validGenders.has(String(raw.gender ?? ''))
+    ? (raw.gender as UserProfile['gender'])
+    : null;
+  const age = typeof raw.age === 'number' && Number.isFinite(raw.age) && raw.age >= 1 && raw.age <= 120
+    ? Math.round(raw.age) : null;
+  const weightKg = typeof raw.weightKg === 'number' && Number.isFinite(raw.weightKg) && raw.weightKg >= 20 && raw.weightKg <= 500
+    ? Math.round(raw.weightKg * 10) / 10 : null;
+  const heightCm = typeof raw.heightCm === 'number' && Number.isFinite(raw.heightCm) && raw.heightCm >= 50 && raw.heightCm <= 300
+    ? Math.round(raw.heightCm * 10) / 10 : null;
+  const restingHr = typeof raw.restingHr === 'number' && Number.isFinite(raw.restingHr) && raw.restingHr >= 20 && raw.restingHr <= 200
+    ? Math.round(raw.restingHr) : null;
+  const bodyFatPct = typeof raw.bodyFatPct === 'number' && Number.isFinite(raw.bodyFatPct) && raw.bodyFatPct >= 1 && raw.bodyFatPct <= 70
+    ? Math.round(raw.bodyFatPct * 10) / 10 : null;
+  const saunaType = validSaunaTypes.has(String(raw.saunaType ?? ''))
+    ? (raw.saunaType as UserProfile['saunaType'])
+    : null;
+  const rltEnabled = typeof raw.rltEnabled === 'boolean' ? raw.rltEnabled : true;
+  const rltPanel = raw.rltPanel && typeof raw.rltPanel === 'object' && !Array.isArray(raw.rltPanel)
+    ? (raw.rltPanel as Record<string, NonNullable<unknown>>)
+    : null;
+  const unitPreference = raw.unitPreference === 'metric' ? 'metric' as const : 'imperial' as const;
+
+  return { gender, age, weightKg, heightCm, restingHr, bodyFatPct, saunaType, rltEnabled, rltPanel, unitPreference };
+}
+
 export const upsertProfile = createServerFn({ method: 'POST' })
   .inputValidator((input: unknown) => {
     const obj = input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
@@ -127,7 +159,7 @@ export const upsertProfile = createServerFn({ method: 'POST' })
     if (!profile || typeof profile !== 'object') {
       throw new Error('profile is required');
     }
-    return { accessToken, profile: profile as UserProfile };
+    return { accessToken, profile: validateProfile(profile as Record<string, unknown>) };
   })
   .handler(async (ctx): Promise<UserProfile> => {
     const user = await verifySupabaseToken(ctx.data.accessToken);

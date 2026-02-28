@@ -270,18 +270,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // W-5 fix: read the current refresh token from localStorage at call time
+  // rather than capturing it via closure. The auto-refresh timer fires after
+  // a delay, and by that time session?.refreshToken may be stale (the token
+  // is single-use and may have already been consumed by a manual refresh).
   const refreshSession = useCallback(async () => {
     if (!env) {
       throw new Error('Auth is not configured for this environment.');
     }
-    if (!session?.refreshToken) {
+    const current = readStoredSession();
+    if (!current?.refreshToken) {
       clearSession();
       return;
     }
-    const nextSession = await refreshWithToken(env, session.refreshToken);
+    const nextSession = await refreshWithToken(env, current.refreshToken);
     persistSession(nextSession);
     setAuthError(null);
-  }, [clearSession, env, persistSession, session?.refreshToken]);
+  }, [clearSession, env, persistSession]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -385,8 +390,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Magic link callback: detect #access_token=...&refresh_token=... in hash
       if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+        // W-2 fix: clear tokens from URL hash IMMEDIATELY, before any async
+        // work, so they don't persist in browser history/analytics on error.
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + window.location.search,
+        );
+
+        // W2-2 fix: recovery tokens (password reset) must NOT be consumed here.
+        // The /auth route needs the access_token to show the "set new password" form.
+        // If we create a session from it, the user gets auto-signed-in and never
+        // sees the password-change UI.
+        if (hashParams.get('type') === 'recovery') {
+          if (!cancelled) {
+            setLoading(false);
+          }
+          return;
+        }
+
         try {
-          const hashParams = new URLSearchParams(window.location.hash.slice(1));
           const accessToken = hashParams.get('access_token');
           const refreshToken = hashParams.get('refresh_token');
           const expiresIn = hashParams.get('expires_in');
@@ -407,12 +431,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!cancelled) {
               persistSession(hashSession);
               setAuthError(null);
-              // Clear hash from URL to prevent re-processing on refresh
-              window.history.replaceState(
-                {},
-                document.title,
-                window.location.pathname + window.location.search,
-              );
             }
           }
         } catch (err) {

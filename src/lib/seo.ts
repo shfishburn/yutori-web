@@ -65,15 +65,19 @@ export function buildSeoHead(options: BuildSeoHeadOptions) {
     { name: 'twitter:image', content: ogImage },
   ];
 
-  if (options.imageWidth && options.imageHeight) {
+  const ogImageWidth = options.imageWidth ?? (options.imageUrl ? undefined : DEFAULT_OG_IMAGE_WIDTH);
+  const ogImageHeight = options.imageHeight ?? (options.imageUrl ? undefined : DEFAULT_OG_IMAGE_HEIGHT);
+  const ogImageType = options.imageType ?? (options.imageUrl ? undefined : DEFAULT_OG_IMAGE_TYPE);
+
+  if (ogImageWidth && ogImageHeight) {
     meta.push(
-      { property: 'og:image:width', content: String(options.imageWidth) },
-      { property: 'og:image:height', content: String(options.imageHeight) },
+      { property: 'og:image:width', content: String(ogImageWidth) },
+      { property: 'og:image:height', content: String(ogImageHeight) },
     );
   }
 
-  if (options.imageType) {
-    meta.push({ property: 'og:image:type', content: options.imageType });
+  if (ogImageType) {
+    meta.push({ property: 'og:image:type', content: ogImageType });
   }
 
   return {

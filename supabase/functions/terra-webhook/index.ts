@@ -92,11 +92,20 @@ Deno.serve(async (req) => {
     const payload = JSON.parse(body);
     const eventType = payload.type ?? payload.event ?? "unknown";
 
-    // Log the raw webhook payload
-    await supabase.from("terra_webhook_log").insert({
-      event_type: eventType,
-      payload,
-    });
+    // W2-4 fix: log only metadata (not full biometric payload) to reduce
+    // data privacy liability, and wrap in try/catch so a logging failure
+    // doesn't return 500 to Terra (which would cause retries).
+    try {
+      await supabase.from("terra_webhook_log").insert({
+        event_type: eventType,
+        payload: {
+          has_user: !!payload.user?.reference_id,
+          data_entries: Array.isArray(payload.data) ? payload.data.length : (payload.data ? 1 : 0),
+        },
+      });
+    } catch (logErr) {
+      console.warn("terra_webhook_log insert failed:", logErr);
+    }
 
     // Process health data payloads
     if (eventType === "body" || eventType === "daily" || eventType === "activity") {
@@ -106,15 +115,14 @@ Deno.serve(async (req) => {
       // reference_id is the Supabase user UUID we passed during initTerra()
       // Treat empty string the same as missing (Terra test payloads send "")
       const referenceId = user?.reference_id || null;
-      const userId: string | null = referenceId;
+      // W2-1 fix: validate reference_id is a UUID before using as user_id
+      // to prevent data insertion against invalid/unexpected user identifiers.
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const userId: string | null = (referenceId && UUID_RE.test(referenceId)) ? referenceId : null;
 
       if (!userId) {
-        // Terra test payloads have empty reference_id — return 200 to prevent retries.
-        // Real payloads with missing reference_id are logged for investigation.
-        await supabase.from("terra_webhook_log").insert({
-          event_type: `${eventType}:missing_reference_id`,
-          payload: { user_id: null, provider: user?.provider ?? "unknown" },
-        });
+        // Terra test payloads have empty/invalid reference_id — return 200 to prevent retries.
+        console.warn(`[terra-webhook] skipping ${eventType}: no valid reference_id`);
         return new Response(
           JSON.stringify({ status: "skipped", reason: "no reference_id" }),
           { headers: { "Content-Type": "application/json", ...CORS } },

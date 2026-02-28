@@ -2,12 +2,9 @@ import { useState } from 'react';
 import { Icon } from './Icon';
 import type { SessionSummary } from '../server/sessions';
 import { SESSIONS } from '../content/account';
+import { formatTemp, type UnitSystem } from '../lib/units';
 
 /* ── Helpers ───────────────────────────────────────────────────── */
-
-export function cToF(c: number): number {
-  return Math.round((c * 9) / 5 + 32);
-}
 
 export function formatDuration(ms: number): string {
   const totalSec = Math.round(ms / 1000);
@@ -20,16 +17,16 @@ export function formatDuration(ms: number): string {
 
 /* ── Session Card ──────────────────────────────────────────────── */
 
-export function SessionCard({ s }: { s: SessionSummary }) {
+export function SessionCard({ s, units = 'imperial' }: { s: SessionSummary; units?: UnitSystem }) {
   const [insightOpen, setInsightOpen] = useState(false);
   const isSauna = s.sessionType === 'sauna';
 
   const tempDisplay = isSauna
     ? s.peakTempC != null
-      ? `${SESSIONS.peakLabel}: ${cToF(s.peakTempC)}°F`
+      ? `${SESSIONS.peakLabel}: ${formatTemp(s.peakTempC, units)}`
       : null
     : s.minTempC != null
-      ? `${SESSIONS.lowLabel}: ${cToF(s.minTempC)}°F`
+      ? `${SESSIONS.lowLabel}: ${formatTemp(s.minTempC, units)}`
       : null;
 
   return (

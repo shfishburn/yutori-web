@@ -161,10 +161,14 @@ async function verifySupabaseToken(accessToken: string): Promise<{ id: string; e
 }
 
 async function findCustomerByEmail(email: string): Promise<ShopifyCustomer | null> {
+  // W2-7 fix: quote the email to prevent Shopify search query injection.
+  // Special characters (colons, quotes, AND/OR) in the email could alter
+  // the search semantics and return unrelated customers.
+  const safeEmail = `"${email.replace(/"/g, '')}"`;
   const data = await shopifyAdminRest<{ customers: ShopifyCustomer[] }>(
     'customers/search.json',
     {
-      query: `email:${email}`,
+      query: `email:${safeEmail}`,
       fields: 'id,email,first_name,last_name,state',
       limit: 1,
     },

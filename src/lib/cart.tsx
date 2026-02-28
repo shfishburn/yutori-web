@@ -52,17 +52,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<ShopifyCart | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // W2-9 fix: guard localStorage access for SSR (TanStack Start does SSR).
   const clearStoredCart = useCallback(() => {
-    localStorage.removeItem(CART_ID_KEY);
+    if (typeof window !== 'undefined') { localStorage.removeItem(CART_ID_KEY); }
     setCart(null);
   }, []);
 
   const persistCart = useCallback((next: ShopifyCart) => {
     setCart(next);
-    localStorage.setItem(CART_ID_KEY, next.id);
+    if (typeof window !== 'undefined') { localStorage.setItem(CART_ID_KEY, next.id); }
   }, []);
 
   const refreshCart = useCallback(async () => {
+    if (typeof window === 'undefined') { return; }
     const stored = localStorage.getItem(CART_ID_KEY);
     if (!stored) {
       setCart(null);

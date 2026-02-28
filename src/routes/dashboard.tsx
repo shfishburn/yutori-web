@@ -755,7 +755,7 @@ function DashboardPage() {
               ) : (
                 <div className="mt-4 grid gap-3">
                   {stats.recentSessions.map((s) => (
-                    <SessionCard key={s.id} s={s} />
+                    <SessionCard key={s.id} s={s} units={units} />
                   ))}
                 </div>
               )}
@@ -809,7 +809,7 @@ function DashboardPage() {
               <>
                 <div className="mt-6 grid gap-3">
                   {historySessions.map((s) => (
-                    <SessionCard key={s.id} s={s} />
+                    <SessionCard key={s.id} s={s} units={units} />
                   ))}
                 </div>
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

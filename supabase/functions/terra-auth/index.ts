@@ -104,9 +104,10 @@ Deno.serve(async (req) => {
     if (!resp.ok) {
       const errText = await resp.text();
       console.error("[terra-auth] Terra auth failed:", resp.status, errText);
+      // W2-11 fix: don't leak Terra's error body or status to the client.
       return jsonResponse(
-        { error: "Terra auth request failed", detail: errText },
-        resp.status,
+        { error: "Terra auth request failed" },
+        502,
         req,
       );
     }

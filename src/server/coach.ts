@@ -72,15 +72,19 @@ function mapAnalysis(row: SupabaseAnalysisRow): CoachAnalysisResponse | null {
   const obj = a as Record<string, unknown>;
   return {
     summary: typeof obj.summary === 'string' ? obj.summary : '',
+    // W2-6 fix: filter out non-object array elements (null, string, number)
+    // that can appear in malformed AI responses cached in the DB.
     insights: Array.isArray(obj.insights)
-      ? obj.insights.map((i: Record<string, unknown>) => ({
-          title: typeof i.title === 'string' ? i.title : '',
-          body: typeof i.body === 'string' ? i.body : '',
-          metric: typeof i.metric === 'string' ? i.metric : '',
-          sentiment: (['positive', 'neutral', 'negative'].includes(i.sentiment as string)
-            ? i.sentiment
-            : 'neutral') as CoachInsight['sentiment'],
-        }))
+      ? (obj.insights as unknown[])
+          .filter((i): i is Record<string, unknown> => i != null && typeof i === 'object' && !Array.isArray(i))
+          .map((i) => ({
+            title: typeof i.title === 'string' ? i.title : '',
+            body: typeof i.body === 'string' ? i.body : '',
+            metric: typeof i.metric === 'string' ? i.metric : '',
+            sentiment: (['positive', 'neutral', 'negative'].includes(i.sentiment as string)
+              ? i.sentiment
+              : 'neutral') as CoachInsight['sentiment'],
+          }))
       : [],
     pattern: typeof obj.pattern === 'string' ? obj.pattern : '',
     suggestion: typeof obj.suggestion === 'string' ? obj.suggestion : '',

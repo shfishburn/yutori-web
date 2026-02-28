@@ -568,6 +568,33 @@ function computeContrastCount(sessions: SessionSummary[]): number {
   return count;
 }
 
+// W-10 fix: compute the longest historical streak, not just the current one.
+function computeBestStreak(sessions: SessionSummary[]): number {
+  const sessionDates = new Set<string>();
+  for (const s of sessions) {
+    const day = toUtcDay(s.endedAt);
+    if (day) sessionDates.add(day);
+  }
+  if (sessionDates.size === 0) return 0;
+  // Sort all unique session dates
+  const sortedDays = Array.from(sessionDates).sort();
+  let best = 1;
+  let current = 1;
+  for (let i = 1; i < sortedDays.length; i++) {
+    const prev = new Date(sortedDays[i - 1]);
+    const curr = new Date(sortedDays[i]);
+    const diffMs = curr.getTime() - prev.getTime();
+    if (diffMs === 86_400_000) {
+      current++;
+      if (current > best) best = current;
+    } else if (diffMs > 86_400_000) {
+      current = 1;
+    }
+    // diffMs === 0 means same day (shouldn't happen with Set), skip
+  }
+  return best;
+}
+
 function deriveGamificationSnapshot(sessions: SessionSummary[]): GamificationSnapshot {
   const saunaCount = sessions.filter((s) => s.sessionType === 'sauna').length;
   const plungeCount = sessions.filter((s) => s.sessionType === 'cold_plunge').length;
@@ -582,7 +609,7 @@ function deriveGamificationSnapshot(sessions: SessionSummary[]): GamificationSna
     plungeCompletedCount: plungeCount,
     contrastCompletedCount: contrastCount,
     currentStreakDays: streak,
-    bestStreakDays: streak,
+    bestStreakDays: Math.max(streak, computeBestStreak(sessions)),
     achievements: [],
   };
 }
@@ -623,6 +650,10 @@ function buildDashboardStats(
     coldCount: gamification.plungeCompletedCount,
     currentStreakDays: gamification.currentStreakDays,
     totalDurationMs,
+    // W-9 fix: average over the sessions we actually have durations for
+    // (sessions.length is capped at DASHBOARD_RECENT_WINDOW_LIMIT, so this
+    // is the windowed average, not all-time — but the durations and count
+    // are consistent with each other).
     avgDurationMs: sessions.length > 0 ? Math.round(totalDurationMs / sessions.length) : 0,
     weeklyBuckets: computeWeeklyBuckets(sessions),
     tempTrends: computeTempTrends(sessions),

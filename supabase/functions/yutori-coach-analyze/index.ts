@@ -131,6 +131,40 @@ function sanitizeString(value: unknown, maxLen = 50): string {
   return value.replace(/[^\p{L}\p{N}\s\-'.]/gu, "").slice(0, maxLen);
 }
 
+/**
+ * W-4 fix: deep-sanitize an input object so arbitrary client-supplied
+ * fields cannot inject prompt instructions into the AI system prompt.
+ * Strings are stripped of control chars and clamped; numbers validated;
+ * arrays/objects recursed to max depth 4; everything else dropped.
+ */
+function sanitizeInputDeep(
+  value: unknown,
+  depth = 0,
+  maxStringLen = 200,
+): unknown {
+  if (depth > 4) return undefined;
+  if (value === null || value === undefined) return value;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") {
+    return isFinite(value) ? Math.max(-1_000_000, Math.min(1_000_000, value)) : null;
+  }
+  if (typeof value === "string") {
+    return value.replace(/[\x00-\x1f\x7f]/g, "").slice(0, maxStringLen);
+  }
+  if (Array.isArray(value)) {
+    return value.slice(0, 100).map((item) => sanitizeInputDeep(item, depth + 1, maxStringLen));
+  }
+  if (typeof value === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value as Record<string, unknown>).slice(0, 50)) {
+      const sanitized = sanitizeInputDeep(val, depth + 1, maxStringLen);
+      if (sanitized !== undefined) result[key] = sanitized;
+    }
+    return result;
+  }
+  return undefined;
+}
+
 /** Validate enumerated gender values */
 function sanitizeGender(value: unknown): string | null {
   if (value === "male" || value === "female" || value === "other") return value;
@@ -236,7 +270,12 @@ function redactBlockedClaims(text: string): string {
   const clean = sentences.filter(
     (s) => !BLOCKED_TERM_PATTERNS.some((p) => p.test(s)),
   );
-  return clean.join(" ").trim() || text; // fall back to original if everything gets filtered
+  // W-20 fix: if ALL sentences are filtered, return a safe fallback
+  // instead of the original unredacted text.
+  if (clean.length === 0) {
+    return "Content has been filtered for safety. Please consult a qualified professional for health guidance.";
+  }
+  return clean.join(" ").trim();
 }
 
 /**
@@ -670,6 +709,7 @@ Deno.serve(async (req) => {
           weeklyBenchmarks,
         };
 
+        // W2-10 fix: add .catch() to prevent unhandled promise rejection
         sbProto.from("coach_protocols").insert({
           user_id: userId,
           protocol_type: protocolType as string,
@@ -679,6 +719,8 @@ Deno.serve(async (req) => {
         }).then(({ error: insErr }) => {
           if (insErr) console.warn("[protocol-cache] insert failed:", insErr.message);
           else console.log("[protocol-cache] saved for user", userId);
+        }).catch((err: unknown) => {
+          console.warn("[protocol-cache] unexpected error:", err);
         });
       }
 
@@ -687,9 +729,12 @@ Deno.serve(async (req) => {
 
     // ── Full analysis mode ─────────────────────────────────────
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { mode: _mode, ...input } = body; // separate mode without mutating body
+    const { mode: _mode, ...rawInput } = body; // separate mode without mutating body
 
-    // Sanitize userFirstName to prevent prompt injection
+    // W-4 fix: deep-sanitize the entire input to prevent prompt injection.
+    // Previously only userFirstName was sanitized; the rest of the body
+    // was passed verbatim into the AI prompt via JSON.stringify.
+    const input = sanitizeInputDeep(rawInput) as Record<string, unknown>;
     const userFirstName = sanitizeString(input.userFirstName, 30) || "there";
     input.userFirstName = userFirstName;
 

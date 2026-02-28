@@ -30,13 +30,19 @@ function jsonResponse(body: unknown, status = 200, req?: Request): Response {
 }
 
 // ── Allowed redirect origins (prevent open redirect) ─────────
-const ALLOWED_REDIRECT_PREFIXES = [
-  "https://thermalwellness.app",
-  "http://localhost:3000",
-];
+// W2-3 fix: only allow localhost in local/development environments
+// to prevent open-redirect in production.
+function getAllowedRedirectPrefixes(): string[] {
+  const prefixes = ["https://thermalwellness.app"];
+  const env = Deno.env.get("ENVIRONMENT") ?? "";
+  if (env === "local" || env === "development") {
+    prefixes.push("http://localhost:3000");
+  }
+  return prefixes;
+}
 
 function isAllowedRedirect(url: string): boolean {
-  return ALLOWED_REDIRECT_PREFIXES.some((prefix) => url.startsWith(prefix));
+  return getAllowedRedirectPrefixes().some((prefix) => url.startsWith(prefix));
 }
 
 // ── Handler ──────────────────────────────────────────────────

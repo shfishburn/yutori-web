@@ -161,11 +161,14 @@ function AuthPage() {
       setSubmitting(true);
       try {
         await updatePasswordWithToken(recoveryToken, password);
-        setNotice('Password updated. You can now sign in with your new password.');
+        // W2-8 fix: set notice AFTER clearing recovery state so goToSignIn's
+        // setNotice(null) doesn't immediately wipe the success message.
         setRecoveryToken(null);
         setPassword('');
         setConfirmPassword('');
-        goToSignIn();
+        setFormError(null);
+        void navigate({ to: '/auth', search: { mode: 'signin' } });
+        setNotice('Password updated. You can now sign in with your new password.');
       } catch (error) {
         setFormError(error instanceof Error ? error.message : 'Password reset failed.');
       } finally {
