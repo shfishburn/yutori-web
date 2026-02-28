@@ -1,4 +1,7 @@
 {
+  "chat.useAgentsMdFile": true,
+  "chat.includeApplyingInstructions": true,
+  "chat.includeReferencedInstructions": true,
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true
   },

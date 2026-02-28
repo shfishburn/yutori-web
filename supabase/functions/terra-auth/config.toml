@@ -1,4 +1,0 @@
-# NOTE: We verify the user inside the function via supabase.auth.getUser(token).
-# Disabling gateway JWT verification avoids cases where the gateway rejects newer
-# JWT signing algorithms (or returns 401 without executing the function).
-verify_jwt = false

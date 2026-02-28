@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// ── CORS (mirrors terra-auth pattern) ────────────────────────
+// ── CORS (mirrors magic-link pattern) ────────────────────────
 function getCorsOrigin(req?: Request): string {
   const origin = req?.headers?.get("origin") ?? "";
   const allowed: string[] = [
