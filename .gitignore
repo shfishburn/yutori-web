@@ -13,3 +13,9 @@ __unconfig*
 todos.json
 .vercel
 .env*.local
+
+# macOS Finder duplicates
+*\ 2
+*\ 2.*
+*\ 3
+*\ 3.*
